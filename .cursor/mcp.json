@@ -1,0 +1,10 @@
+{
+    "mcpServers": {
+        "encore-docs": {
+            "url": "https://gitmcp.io/encoredev/encore"
+        },
+        "angular-docs": {
+            "url": "https://gitmcp.io/angular/angular"
+        }
+    }
+}
