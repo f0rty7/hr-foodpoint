@@ -1,17 +1,6 @@
 ﻿import { api, APIError } from "encore.dev/api";
 
-// Serve static HTML files from the assets directory
-export const assets = api.static({
-    expose: true,
-    path: "/static/*path",
-    dir: "./assets"
-});
-
-// Raw endpoint to serve dynamic HTML
-export const page = api.raw(
-    { expose: true, path: "/page", method: "GET" },
-    async (req, resp) => {
-        const html = `
+const DynamicHTML = `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -19,6 +8,11 @@ export const page = api.raw(
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dynamic HTML - Hem Service</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
         body {
             font-family: system-ui, sans-serif;
             max-width: 600px;
@@ -71,11 +65,11 @@ export const page = api.raw(
         <h1>🌊 Dynamic HTML</h1>
         <p>This page is generated dynamically by a raw endpoint!</p>
         
-        <div class="timestamp">
+        <div class="timestamp" id="timestamp">
             Generated at: ${new Date().toISOString()}
         </div>
         
-        <p>Server time: <strong>${new Date().toLocaleString()}</strong></p>
+        <p id="server-time">Server time: <strong>${new Date().toLocaleString()}</strong></p>
         
         <div class="links">
             <a href="/static/index.html">Static HTML</a>
@@ -84,10 +78,37 @@ export const page = api.raw(
     </div>
     
     <script>
-        console.log('🎨 Dynamic HTML loaded at:', new Date());
+        const serverTime = document.getElementById('server-time');
+        if (serverTime) {
+            serverTime.innerHTML = 'Server time: <strong>' + new Date().toLocaleString() + '</strong>';
+        }
+        
+        // Update server time every second
+        setInterval(() => {
+            const now = new Date();
+            serverTime.innerHTML = 'Server time: <strong>' + now.toLocaleString() + '</strong>';
+        }, 1000);
+        
+        const timestamp = document.getElementById('timestamp');
+        if (timestamp) {
+            timestamp.textContent = 'Generated at: ' + new Date().toISOString();
+        }
     </script>
 </body>
 </html>`;
+
+// Serve static HTML files from the assets directory
+export const assets = api.static({
+    expose: true,
+    path: "/static/*path",
+    dir: "./assets"
+});
+
+// Raw endpoint to serve dynamic HTML
+export const page = api.raw(
+    { expose: true, path: "/page", method: "GET" },
+    async (req, resp) => {
+        const html = DynamicHTML;
 
         resp.writeHead(200, { 
             "Content-Type": "text/html; charset=utf-8",
