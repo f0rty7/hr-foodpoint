@@ -8,6 +8,7 @@ describe("Users service with MongoDB", () => {
     const result = await createUser({
       name: "John Doe",
       email: "john.doe@example.com",
+      phone: "1234567890",
     });
 
     expect(result.message).toBe("User created successfully");
@@ -82,6 +83,7 @@ describe("Users service with MongoDB", () => {
     await createUser({
       name: "Test User",
       email: "test@duplicate.com",
+      phone: "1234567890",
     });
 
     // Try to create another user with the same email
@@ -89,6 +91,7 @@ describe("Users service with MongoDB", () => {
       await createUser({
         name: "Another User",
         email: "test@duplicate.com",
+        phone: "1234567890",
       });
       expect(true).toBe(false);
     } catch (error: any) {

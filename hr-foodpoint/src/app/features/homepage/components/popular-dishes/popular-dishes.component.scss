@@ -1,0 +1,44 @@
+.popular-dishes {
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
+  border: none;
+}
+
+.section-title {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 1.5rem;
+  text-align: left;
+}
+
+.dishes-grid {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-start;
+}
+
+.dish-card {
+  flex: 1;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: transform 0.2s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+  }
+}
+
+.dish-image {
+  width: 100%;
+  height: 250px;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border-radius: 8px;
+  border: 2px solid #ddd;
+
+  // Fallback for when images don't load
+  background-color: #f0f0f0;
+}

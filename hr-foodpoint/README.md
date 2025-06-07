@@ -1,59 +1,153 @@
-# HrFoodpoint
+# HR FoodPoint - Homepage Feature
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.2.14.
+A modern Angular application featuring a lazy-loaded homepage route with food and job listings.
 
-## Development server
+## Features
 
-To start a local development server, run:
+### 🚀 Modern Angular Architecture
+- **Lazy Loading**: Homepage route is lazy loaded at `/app`
+- **Standalone Components**: All components use Angular's standalone architecture
+- **Signals**: Reactive state management using Angular signals
+- **Defer Blocks**: Optimized loading with `@defer` blocks (ready for implementation)
+- **NgOptimizedImage**: Performance-optimized image loading
 
-```bash
-ng serve
+### 🎨 Design Implementation
+- **Responsive Design**: Mobile-first approach with CSS Grid and Flexbox
+- **Modern UI**: Clean, professional design matching the provided mockup
+- **Component Architecture**: Modular components for maintainability
+
+### 📱 Homepage Sections
+1. **Header**: Navigation with logo and menu items
+2. **Hero Section**: Main title with call-to-action button
+3. **Popular Dishes**: Grid layout showcasing food items
+4. **Job Listings**: Professional job postings display
+5. **About Us**: Company information with image and text
+
+## Technical Stack
+
+- **Angular v18+**: Latest Angular features
+- **TypeScript**: Type-safe development
+- **SCSS**: Advanced styling with variables and mixins
+- **Signals**: Modern reactive state management
+- **Standalone Components**: No NgModules required
+
+## Project Structure
+
+```
+hr-foodpoint/src/app/
+├── features/
+│   └── homepage/
+│       ├── components/
+│       │   ├── header/
+│       │   ├── hero-section/
+│       │   ├── popular-dishes/
+│       │   ├── job-listings/
+│       │   └── about-us/
+│       ├── services/
+│       │   ├── dish.service.ts
+│       │   └── job.service.ts
+│       ├── homepage.component.ts
+│       ├── homepage.component.scss
+│       └── homepage.routes.ts
+├── app.routes.ts
+└── app.component.html
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+## Getting Started
 
-## Code scaffolding
+1. **Install Dependencies**
+   ```bash
+   npm install
+   ```
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+2. **Start Development Server**
+   ```bash
+   npm start
+   ```
 
-```bash
-ng generate component component-name
+3. **Navigate to Homepage**
+   - Open browser to `http://localhost:4200`
+   - Automatically redirects to `/app` (homepage route)
+
+## Route Configuration
+
+The homepage is configured as a lazy-loaded route:
+
+```typescript
+// app.routes.ts
+{
+  path: 'app',
+  loadChildren: () => import('./features/homepage/homepage.routes').then(m => m.homepageRoutes)
+}
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+## Modern Angular Features Used
 
-```bash
-ng generate --help
+### Signals for State Management
+```typescript
+dishes = signal([...]);
+jobs = signal([...]);
 ```
 
-## Building
-
-To build the project run:
-
-```bash
-ng build
+### Control Flow Syntax
+```typescript
+@for (dish of dishes(); track dish.id) {
+  <div class="dish-card">{{ dish.name }}</div>
+}
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
-
-```bash
-ng test
+### Inject Function
+```typescript
+private dishService = inject(DishService);
 ```
 
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
+### Defer Blocks (Ready for Implementation)
+```typescript
+@defer (on viewport) {
+  <app-popular-dishes />
+} @placeholder {
+  <div>Loading dishes...</div>
+}
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+## Performance Optimizations
 
-## Additional Resources
+- **Lazy Loading**: Route-level code splitting
+- **Signals**: Efficient change detection
+- **NgOptimizedImage**: Optimized image loading
+- **Defer Blocks**: Component-level lazy loading
+- **CSS Grid**: Efficient layouts
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+## Browser Support
+
+- Chrome 90+
+- Firefox 88+
+- Safari 14+
+- Edge 90+
+
+## Development
+
+### Adding New Components
+1. Create component in appropriate feature directory
+2. Use standalone component architecture
+3. Implement signals for reactive state
+4. Add proper TypeScript interfaces
+
+### Styling Guidelines
+- Use SCSS with BEM methodology
+- Mobile-first responsive design
+- CSS custom properties for theming
+- Consistent spacing and typography
+
+## Future Enhancements
+
+- [ ] Implement actual API integration
+- [ ] Add authentication
+- [ ] Implement search functionality
+- [ ] Add animations and transitions
+- [ ] PWA capabilities
+- [ ] Internationalization (i18n)
+
+## License
+
+MIT License
