@@ -13,7 +13,7 @@ import { AboutUsComponent } from './components/about-us/about-us.component';
   imports: [
     CommonModule,
     RouterModule,
-    // HeaderComponent,
+    HeaderComponent,
     HeroSectionComponent,
     PopularDishesComponent,
     JobListingsComponent,
@@ -21,7 +21,7 @@ import { AboutUsComponent } from './components/about-us/about-us.component';
   ],
   template: `
     <div class="homepage-container">
-      <!-- <app-header /> -->
+      <app-header />
       <app-hero-section />
 
       <main class="main-content">
