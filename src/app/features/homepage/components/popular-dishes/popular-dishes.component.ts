@@ -1,5 +1,6 @@
 import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { DishService } from '../../services/dish.service';
 
 interface Dish {
   id: number;
@@ -13,10 +14,33 @@ interface Dish {
   standalone: true,
   imports: [CommonModule],
   template: `
+    @if (dishService.dishesLoading) {
+      <div class="loading-message">Loading dishes...</div>
+    }
+
+    @if (dishService.dishesError) {
+      <div class="error-message">Error: {{ dishService.dishesError }}</div>
+    }
+
     <section class="popular-dishes">
-      <h2 class="section-title">Popular Dishes</h2>
+      <div class="section-header">
+        <h2 class="section-title">Popular Dishes</h2>
+        <!-- <button
+          class="refresh-btn"
+          (click)="dishService.refreshDishes()"
+          [disabled]="dishService.dishesLoading"
+          title="Refresh dishes">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path>
+            <path d="M21 3v5h-5"></path>
+            <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path>
+            <path d="M3 21v-5h5"></path>
+          </svg>
+          <span>Refresh</span>
+        </button> -->
+      </div>
       <div class="dishes-grid">
-        @for (dish of dishes(); track dish.id) {
+        @for (dish of dishService.dishes; track dish.id) {
           <div class="dish-card">
             <div class="dish-image" [style.background-image]="'url(' + dish.image + ')'">
             </div>
@@ -28,24 +52,5 @@ interface Dish {
   styleUrl: './popular-dishes.component.scss'
 })
 export class PopularDishesComponent {
-  dishes = signal<Dish[]>([
-    {
-      id: 1,
-      name: 'Paneer Butter Masala',
-      image: 'https://images.unsplash.com/photo-1701579231378-3726490a407b?q=80&w=2574&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-      description: 'Creamy black lentil curry'
-    },
-    {
-      id: 2,
-      name: 'Dal Rice',
-      image: 'https://plus.unsplash.com/premium_photo-1699293238823-7f56fe53ae3e?q=80&w=2574&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-      description: 'Rich tomato-based chicken curry'
-    },
-    {
-      id: 3,
-      name: 'Samosas',
-      image: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?w=300&h=200&fit=crop&crop=center',
-      description: 'Spinach curry with cottage cheese'
-    }
-  ]);
+  constructor(public dishService: DishService) {}
 }

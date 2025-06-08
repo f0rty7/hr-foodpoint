@@ -18,11 +18,9 @@ import { CommonModule } from '@angular/common';
         </div>
         <div class="about-text">
           <p>
-            Welcome to HR FoodPoint, where culinary excellence meets modern convenience. Born from a passion for delivering exceptional dining experiences, we started as a small cloud kitchen with a big dream - to bring restaurant-quality meals directly to your doorstep.
+            Welcome to HR FoodPoint, where culinary excellence meets modern convenience. We're a cloud kitchen dedicated to bringing restaurant-quality meals directly to your doorstep.
 
-            Our journey began when our founder, a seasoned chef with over 15 years of experience in fine dining, recognized the changing landscape of food service. We embraced the cloud kitchen model to focus entirely on what matters most: crafting delicious, fresh meals using premium ingredients and time-honored recipes.
-
-            From our state-of-the-art kitchen facility, we prepare each dish with meticulous attention to detail, ensuring every order meets our high standards of quality and taste. We believe that great food should be accessible to everyone, which is why we've streamlined our operations to offer exceptional value without compromising on quality.
+            Founded by a seasoned chef with over 15 years of fine dining experience, we focus on crafting delicious, fresh meals using premium ingredients and time-honored recipes. From our state-of-the-art kitchen facility, we prepare each dish with meticulous attention to detail, ensuring exceptional quality and taste at great value.
           </p>
         </div>
       </div>
