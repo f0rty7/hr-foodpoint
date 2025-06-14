@@ -96,6 +96,40 @@
   }
 }
 
+.password-input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  .form-input {
+    flex: 1;
+    padding-right: 3rem; // Make space for toggle button
+  }
+
+  .password-toggle {
+    position: absolute;
+    right: 0.75rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.25rem;
+    font-size: 1.25rem;
+    color: #666;
+    transition: color 0.2s ease;
+    z-index: 1;
+
+    &:hover {
+      color: #333;
+    }
+
+    &:focus {
+      outline: 2px solid #667eea;
+      outline-offset: 2px;
+      border-radius: 4px;
+    }
+  }
+}
+
 .error-message {
   font-size: 0.875rem;
   color: #ef4444;

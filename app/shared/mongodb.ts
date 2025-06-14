@@ -52,14 +52,28 @@ export interface User {
   name: string;
   email: string;
   phone: string;
+  passwordHash?: string; // Hashed password using bcrypt
+  refreshTokens?: RefreshToken[]; // Array of active refresh tokens
+  lastLoginAt?: Date;
+  loginAttempts?: number; // For rate limiting failed attempts
+  lockoutUntil?: Date; // Account lockout timestamp
   address?: string;
   city?: string;
   state?: string;
   zip?: string;
   country?: string;
   role?: UserRole;
+  isActive?: boolean; // Account status
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface RefreshToken {
+  token: string;
+  expiresAt: Date;
+  createdAt: Date;
+  deviceInfo?: string; // Optional device/browser info
+  ipAddress?: string; // Optional IP address tracking
 }
 
 export enum UserRole {
@@ -78,4 +92,14 @@ export interface Post {
   createdAt: Date;
   updatedAt: Date;
   published: boolean;
-} 
+}
+
+// Rate limiting interface for tracking API requests
+export interface RateLimitEntry {
+  _id?: string;
+  identifier: string; // IP address or user ID
+  endpoint: string;
+  requestCount: number;
+  windowStart: Date;
+  lastRequest: Date;
+}

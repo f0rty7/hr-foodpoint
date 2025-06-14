@@ -21,7 +21,7 @@ export interface AuthUser {
 }
 
 export interface AuthResponse {
-  token: string;
+  accessToken: string;
   user: AuthUser;
   message: string;
 }
@@ -58,6 +58,7 @@ export class AuthService {
 
   private async verifyToken(token: string) {
     try {
+      console.log('Verifying token on page refresh...');
       const response = await fetch(`${this.API_BASE_URL}/auth/me`, {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -66,18 +67,22 @@ export class AuthService {
 
       if (response.ok) {
         const data = await response.json();
+        console.log('Token verification successful, user data:', data);
         this.currentUserSignal.set({
           id: data.user.id,
           name: data.user.name,
           email: data.user.email
         });
       } else {
+        console.warn('Token verification failed with status:', response.status);
         // Token is invalid, remove it
         localStorage.removeItem('auth_token');
+        this.currentUserSignal.set(null);
       }
     } catch (error) {
-      console.warn('Token verification failed:', error);
+      console.warn('Token verification failed with error:', error);
       localStorage.removeItem('auth_token');
+      this.currentUserSignal.set(null);
     }
   }
 
@@ -100,8 +105,8 @@ export class AuthService {
       const data: AuthResponse = await response.json();
 
       if (response.ok) {
-        // Store token
-        localStorage.setItem('auth_token', data.token);
+        // Store token - use accessToken from backend response
+        localStorage.setItem('auth_token', data.accessToken);
 
         // Update user state
         this.currentUserSignal.set(data.user);
@@ -138,8 +143,8 @@ export class AuthService {
       const data: AuthResponse = await response.json();
 
       if (response.ok) {
-        // Store token
-        localStorage.setItem('auth_token', data.token);
+        // Store token - use accessToken from backend response
+        localStorage.setItem('auth_token', data.accessToken);
 
         // Update user state
         this.currentUserSignal.set(data.user);

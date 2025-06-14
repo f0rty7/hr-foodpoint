@@ -40,14 +40,24 @@ import { AuthService } from '../../services/auth.service';
 
           <div class="form-group">
             <label for="password" class="form-label">Password</label>
-            <input
-              id="password"
-              type="password"
-              formControlName="password"
-              class="form-input"
-              [class.error]="isFieldInvalid('password')"
-              placeholder="Enter your password"
-            />
+            <div class="password-input-container">
+              <input
+                id="password"
+                [type]="showPassword ? 'text' : 'password'"
+                formControlName="password"
+                class="form-input"
+                [class.error]="isFieldInvalid('password')"
+                placeholder="Enter your password"
+              />
+              <button
+                type="button"
+                class="password-toggle"
+                (click)="togglePasswordVisibility()"
+                [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'"
+              >
+                {{ showPassword ? '👁️' : '👁️‍🗨️' }}
+              </button>
+            </div>
             @if (isFieldInvalid('password')) {
               <span class="error-message">Password is required</span>
             }
@@ -86,11 +96,15 @@ import { AuthService } from '../../services/auth.service';
 })
 export class SigninComponent {
   signinForm: FormGroup;
+  showPassword = false;
 
   constructor(
     private fb: FormBuilder,
     public authService: AuthService
   ) {
+    // Clear any existing auth errors when component loads
+    this.authService.clearError();
+
     this.signinForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
@@ -103,7 +117,11 @@ export class SigninComponent {
     return !!(field && field.invalid && (field.dirty || field.touched));
   }
 
-    async onSubmit() {
+  togglePasswordVisibility() {
+    this.showPassword = !this.showPassword;
+  }
+
+  async onSubmit() {
     if (this.signinForm.valid) {
       const formValue = this.signinForm.value;
       const success = await this.authService.signin({

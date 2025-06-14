@@ -70,14 +70,24 @@ import { AuthService } from '../../services/auth.service';
 
           <div class="form-group">
             <label for="password" class="form-label">Password</label>
-            <input
-              id="password"
-              type="password"
-              formControlName="password"
-              class="form-input"
-              [class.error]="isFieldInvalid('password')"
-              placeholder="Create a password"
-            />
+            <div class="password-input-container">
+              <input
+                id="password"
+                [type]="showPassword ? 'text' : 'password'"
+                formControlName="password"
+                class="form-input"
+                [class.error]="isFieldInvalid('password')"
+                placeholder="Create a password"
+              />
+              <button
+                type="button"
+                class="password-toggle"
+                (click)="togglePasswordVisibility()"
+                [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'"
+              >
+                {{ showPassword ? '👁️' : '👁️‍🗨️' }}
+              </button>
+            </div>
             @if (isFieldInvalid('password')) {
               <span class="error-message">Password must be at least 6 characters</span>
             }
@@ -85,14 +95,24 @@ import { AuthService } from '../../services/auth.service';
 
           <div class="form-group">
             <label for="confirmPassword" class="form-label">Confirm Password</label>
-            <input
-              id="confirmPassword"
-              type="password"
-              formControlName="confirmPassword"
-              class="form-input"
-              [class.error]="isFieldInvalid('confirmPassword') || hasPasswordMismatch()"
-              placeholder="Confirm your password"
-            />
+            <div class="password-input-container">
+              <input
+                id="confirmPassword"
+                [type]="showConfirmPassword ? 'text' : 'password'"
+                formControlName="confirmPassword"
+                class="form-input"
+                [class.error]="isFieldInvalid('confirmPassword') || hasPasswordMismatch()"
+                placeholder="Confirm your password"
+              />
+              <button
+                type="button"
+                class="password-toggle"
+                (click)="toggleConfirmPasswordVisibility()"
+                [attr.aria-label]="showConfirmPassword ? 'Hide password' : 'Show password'"
+              >
+                {{ showConfirmPassword ? '👁️' : '👁️‍🗨️' }}
+              </button>
+            </div>
             @if (isFieldInvalid('confirmPassword')) {
               <span class="error-message">Please confirm your password</span>
             }
@@ -133,11 +153,16 @@ import { AuthService } from '../../services/auth.service';
 })
 export class SignupComponent {
   signupForm: FormGroup;
+  showPassword = false;
+  showConfirmPassword = false;
 
   constructor(
     private fb: FormBuilder,
     public authService: AuthService
   ) {
+    // Clear any existing auth errors when component loads
+    this.authService.clearError();
+
     this.signupForm = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(2)]],
       email: ['', [Validators.required, Validators.email]],
@@ -152,6 +177,14 @@ export class SignupComponent {
       Validators.required,
       this.passwordMatchValidator.bind(this)
     ]);
+  }
+
+  togglePasswordVisibility() {
+    this.showPassword = !this.showPassword;
+  }
+
+  toggleConfirmPasswordVisibility() {
+    this.showConfirmPassword = !this.showConfirmPassword;
   }
 
   passwordMatchValidator(control: any) {
