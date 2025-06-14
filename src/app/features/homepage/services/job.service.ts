@@ -1,4 +1,5 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, inject, signal, resource } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 
 export interface Job {
   id: number;
@@ -15,14 +16,118 @@ export interface Job {
   providedIn: 'root'
 })
 export class JobService {
-  private jobsSignal = signal<Job[]>([]);
+  private readonly http = inject(HttpClient);
+  private readonly API_BASE_URL = 'http://0.0.0.0:4000/homepage'; // Replace with your actual API URL
 
-  // Read-only signal for components to subscribe to
-  readonly jobs = this.jobsSignal.asReadonly();
+  // Signal to trigger resource refresh
+  private refreshTrigger = signal(0);
 
-  async loadJobs(): Promise<Job[]> {
-    // Simulate API call
-    const mockJobs: Job[] = [
+  // Resource for fetching all jobs
+  readonly jobsResource = resource({
+    request: () => ({ refreshId: this.refreshTrigger() }),
+    loader: async ({ request, abortSignal }) => {
+      try {
+        const response = await fetch(`${this.API_BASE_URL}/jobs`, {
+          signal: abortSignal
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        // Extract jobs array from the response object
+        return data.jobs as Job[];
+      } catch (error) {
+        if (error instanceof Error && error.name === 'AbortError') {
+          throw error; // Re-throw abort errors
+        }
+
+        console.warn('Failed to fetch jobs from API, using fallback data:', error);
+        // Fallback to mock data if API fails
+        return this.getMockJobs();
+      }
+    }
+  });
+
+  // Resource for fetching a single job by ID
+  private jobIdSignal = signal<number | undefined>(undefined);
+
+  readonly jobByIdResource = resource({
+    request: () => {
+      const id = this.jobIdSignal();
+      return id ? { id } : undefined;
+    },
+    loader: async ({ request, abortSignal }) => {
+      if (!request?.id) return null;
+
+      try {
+        const response = await fetch(`${this.API_BASE_URL}/jobs/${request.id}`, {
+          signal: abortSignal
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        return await response.json() as Job;
+      } catch (error) {
+        if (error instanceof Error && error.name === 'AbortError') {
+          throw error;
+        }
+
+        console.warn('Failed to fetch job from API:', error);
+        // Fallback to finding in current jobs
+        const jobs = this.jobsResource.value();
+        return jobs?.find((job: Job) => job.id === request.id) || null;
+      }
+    }
+  });
+
+  // Computed getters for easy access
+  get jobs(): Job[] {
+    return this.jobsResource.value() || [];
+  }
+
+  get jobsLoading(): boolean {
+    return this.jobsResource.isLoading();
+  }
+
+  get jobsError(): any {
+    return this.jobsResource.error();
+  }
+
+  get jobsStatus(): any {
+    return this.jobsResource.status();
+  }
+
+  // Methods
+  getJobById(id: number): Job | null {
+    this.jobIdSignal.set(id);
+    return this.jobByIdResource.value() || null;
+  }
+
+  refreshJobs(): void {
+    this.jobsResource.reload();
+  }
+
+  // Trigger a complete refresh by updating the refresh signal
+  forceRefresh(): void {
+    this.refreshTrigger.update(value => value + 1);
+  }
+
+  searchJobs(query: string): Job[] {
+    const lowerQuery = query.toLowerCase();
+    return this.jobs.filter(job =>
+      job.title.toLowerCase().includes(lowerQuery) ||
+      job.company.toLowerCase().includes(lowerQuery) ||
+      job.location.toLowerCase().includes(lowerQuery)
+    );
+  }
+
+  private getMockJobs(): Job[] {
+    return [
       {
         id: 1,
         title: 'Software development engineer',
@@ -54,21 +159,16 @@ export class JobService {
         requirements: ['Angular', 'TypeScript', 'REST APIs']
       }
     ];
-
-    this.jobsSignal.set(mockJobs);
-    return mockJobs;
   }
 
-  getJobById(id: number): Job | undefined {
-    return this.jobs().find(job => job.id === id);
+  // Utility method to find job from current resource state
+  findJobById(id: number): Job | undefined {
+    return this.jobs.find((job: Job) => job.id === id);
   }
 
-  searchJobs(query: string): Job[] {
-    const lowerQuery = query.toLowerCase();
-    return this.jobs().filter(job =>
-      job.title.toLowerCase().includes(lowerQuery) ||
-      job.company.toLowerCase().includes(lowerQuery) ||
-      job.location.toLowerCase().includes(lowerQuery)
-    );
+  // Legacy method for backward compatibility
+  async loadJobs(): Promise<Job[]> {
+    this.forceRefresh();
+    return this.jobs;
   }
 }

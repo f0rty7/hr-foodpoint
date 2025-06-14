@@ -65,27 +65,27 @@ export const getHomepageData = api(
                 {
                     id: 1,
                     title: "Software development engineer",
-                    company: "Infosys",
+                    company: "Amazon",
                     location: "Bengaluru",
                     type: "Full time",
                     description: "Develop and maintain scalable web applications using modern technologies",
-                    salary: "₹6-12 LPA",
+                    salary: "₹20-35 LPA",
                     requirements: ["JavaScript", "React", "Node.js", "TypeScript"]
                 },
                 {
                     id: 2,
-                    title: "Software development engineer",
+                    title: "Software development intern",
                     company: "Infosys",
                     location: "Bengaluru",
-                    type: "Full time",
+                    type: "Internship",
                     description: "Work on enterprise software solutions and cloud infrastructure",
-                    salary: "₹6-12 LPA",
+                    salary: "₹4-6 LPA",
                     requirements: ["Java", "Spring Boot", "MySQL", "AWS"]
                 },
                 {
                     id: 3,
                     title: "Software development engineer",
-                    company: "Infosys",
+                    company: "Wipro",
                     location: "Bengaluru",
                     type: "Full time",
                     description: "Build scalable web applications and REST APIs",

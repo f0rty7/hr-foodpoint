@@ -19,8 +19,7 @@
 
 .content-sections {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16rem;
+  gap: 3rem;
   margin-bottom: 3rem;
 
   @media (max-width: 768px) {

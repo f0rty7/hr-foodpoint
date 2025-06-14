@@ -95,21 +95,22 @@
 
 .dishes-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fit, 300px);
   gap: 1rem;
+  justify-content: start;
 
-  // Desktop: 3 columns for wide screens
+  // Desktop: Allow more cards if space permits
   @media (min-width: 1200px) {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(auto-fit, 300px);
   }
 
-  // Tablet: 2 columns for medium screens
+  // Tablet: 2 columns max
   @media (min-width: 768px) and (max-width: 1199px) {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 1.5rem;
   }
 
-  // Mobile: 1 column for small screens
+  // Mobile: 1 column, full width
   @media (max-width: 767px) {
     grid-template-columns: 1fr;
     gap: 1rem;
@@ -123,7 +124,7 @@
   min-width: 0; // Prevents grid items from overflowing
 
   &:hover {
-    transform: translateY(-2px);
+    transform: scale(0.95);
   }
 }
 

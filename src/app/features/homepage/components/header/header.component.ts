@@ -1,13 +1,16 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatDividerModule } from '@angular/material/divider';
+import { AuthService } from '../../../auth/services/auth.service';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [CommonModule, MatMenuModule, MatButtonModule, MatIconModule],
+  imports: [CommonModule, RouterModule, MatMenuModule, MatButtonModule, MatIconModule, MatDividerModule],
   template: `
     <header class="header">
       <div class="container">
@@ -27,8 +30,37 @@ import { MatIconModule } from '@angular/material/icon';
               <button mat-menu-item>Job Search</button>
             </mat-menu>
           </div>
-          <a href="#" class="nav-link">About</a>
-          <a href="#" class="nav-link login-btn">Login</a>
+                      <a href="#" class="nav-link">About</a>
+            @if (authService.isAuthenticated()) {
+              <div class="user-menu">
+                <button
+                  mat-button
+                  [matMenuTriggerFor]="userDropdown"
+                  class="user-button"
+                >
+                  <mat-icon>account_circle</mat-icon>
+                  <span>{{ authService.currentUser()?.name }}</span>
+                  <mat-icon>keyboard_arrow_down</mat-icon>
+                </button>
+                <mat-menu #userDropdown="matMenu">
+                  <button mat-menu-item>
+                    <mat-icon>person</mat-icon>
+                    <span>Profile</span>
+                  </button>
+                  <button mat-menu-item>
+                    <mat-icon>settings</mat-icon>
+                    <span>Settings</span>
+                  </button>
+                  <mat-divider></mat-divider>
+                  <button mat-menu-item (click)="authService.signout()">
+                    <mat-icon>logout</mat-icon>
+                    <span>Logout</span>
+                  </button>
+                </mat-menu>
+              </div>
+            } @else {
+              <a routerLink="/auth/signin" class="nav-link login-btn">Login</a>
+            }
         </nav>
 
         <!-- Mobile Menu Toggle -->
@@ -60,8 +92,23 @@ import { MatIconModule } from '@angular/material/icon';
                 <a href="#" class="mobile-submenu-link" (click)="closeMobileMenu()">Job Search</a>
               </div>
             </div>
-            <a href="#" class="mobile-nav-link" (click)="closeMobileMenu()">About</a>
-            <a href="#" class="mobile-nav-link login-btn" (click)="closeMobileMenu()">Login</a>
+                          <a href="#" class="mobile-nav-link" (click)="closeMobileMenu()">About</a>
+              @if (authService.isAuthenticated()) {
+                <div class="mobile-user-section">
+                  <div class="mobile-user-info">
+                    <mat-icon>account_circle</mat-icon>
+                    <span>{{ authService.currentUser()?.name }}</span>
+                  </div>
+                  <a href="#" class="mobile-nav-link" (click)="closeMobileMenu()">Profile</a>
+                  <a href="#" class="mobile-nav-link" (click)="closeMobileMenu()">Settings</a>
+                  <button class="mobile-nav-link logout-btn" (click)="authService.signout(); closeMobileMenu()">
+                    <mat-icon>logout</mat-icon>
+                    Logout
+                  </button>
+                </div>
+              } @else {
+                <a routerLink="/auth/signin" class="mobile-nav-link login-btn" (click)="closeMobileMenu()">Login</a>
+              }
           </div>
         </nav>
       </div>
@@ -72,6 +119,8 @@ import { MatIconModule } from '@angular/material/icon';
 export class HeaderComponent {
   isMobileMenuOpen = false;
   isServicesMenuOpen = false;
+
+  constructor(public authService: AuthService) {}
 
   toggleMobileMenu() {
     this.isMobileMenuOpen = !this.isMobileMenuOpen;
