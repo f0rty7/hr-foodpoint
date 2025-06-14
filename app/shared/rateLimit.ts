@@ -19,6 +19,8 @@ export const RATE_LIMIT_CONFIGS = {
   DEFAULT: { windowMs: 15 * 60 * 1000, maxRequests: 100, message: "Rate limit exceeded. Please try again later." }, // 100 requests per 15 minutes
 } as const;
 
+const DISABLE_RATE_LIMITING = true;
+
 /**
  * Check if request should be rate limited
  * @param rateLimitsCollection - MongoDB collection for rate limits
@@ -33,6 +35,11 @@ export async function checkRateLimit(
   endpoint: string,
   config: RateLimitConfig = RATE_LIMIT_CONFIGS.DEFAULT
 ): Promise<void> {
+  // TEMPORARY: Skip rate limiting if disabled
+  if (DISABLE_RATE_LIMITING) {
+    return;
+  }
+
   try {
     const now = new Date();
     const windowStart = new Date(now.getTime() - config.windowMs);

@@ -18,6 +18,7 @@ export interface AuthUser {
   id: string;
   name: string;
   email: string;
+  phone: string;
 }
 
 export interface AuthResponse {
@@ -67,11 +68,13 @@ export class AuthService {
 
       if (response.ok) {
         const data = await response.json();
+
         console.log('Token verification successful, user data:', data);
         this.currentUserSignal.set({
           id: data.user.id,
           name: data.user.name,
-          email: data.user.email
+          email: data.user.email,
+          phone: data.user.phone
         });
       } else {
         console.warn('Token verification failed with status:', response.status);

@@ -20,7 +20,7 @@ import { AuthService } from '../../../auth/services/auth.service';
 
         <!-- Desktop Navigation -->
         <nav class="navigation desktop-nav">
-          <a href="#" class="nav-link">Home</a>
+          <a class="nav-link" routerLink="/">Home</a>
           <div class="nav-dropdown">
             <button mat-button [matMenuTriggerFor]="servicesMenu" class="nav-link services-trigger">
               Services
@@ -39,11 +39,11 @@ import { AuthService } from '../../../auth/services/auth.service';
                   class="user-button"
                 >
                   <mat-icon>account_circle</mat-icon>
-                  <span>{{ authService.currentUser()?.name }}</span>
                   <mat-icon>keyboard_arrow_down</mat-icon>
+                  <span>{{ authService.currentUser()?.name }}</span>
                 </button>
                 <mat-menu #userDropdown="matMenu">
-                  <button mat-menu-item>
+                  <button mat-menu-item routerLink="/profile">
                     <mat-icon>person</mat-icon>
                     <span>Profile</span>
                   </button>
@@ -99,7 +99,7 @@ import { AuthService } from '../../../auth/services/auth.service';
                     <mat-icon>account_circle</mat-icon>
                     <span>{{ authService.currentUser()?.name }}</span>
                   </div>
-                  <a href="#" class="mobile-nav-link" (click)="closeMobileMenu()">Profile</a>
+                  <a routerLink="/profile" class="mobile-nav-link" (click)="closeMobileMenu()">Profile</a>
                   <a href="#" class="mobile-nav-link" (click)="closeMobileMenu()">Settings</a>
                   <button class="mobile-nav-link logout-btn" (click)="authService.signout(); closeMobileMenu()">
                     <mat-icon>logout</mat-icon>

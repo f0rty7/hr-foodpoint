@@ -223,6 +223,7 @@ interface LoginResponse {
     id: string;
     name: string;
     email: string;
+    phone: string;
     role?: string;
   };
   expiresIn: string;
@@ -307,6 +308,7 @@ export const login = api.raw(
           id: user._id!.toString(),
           name: user.name,
           email: user.email,
+          phone: user.phone,
           role: user.role
         },
         expiresIn: ACCESS_TOKEN_EXPIRY,
@@ -357,6 +359,7 @@ interface RegisterResponse {
     id: string;
     name: string;
     email: string;
+    phone: string;
     role?: UserRole;
   };
   expiresIn: string;
@@ -450,6 +453,7 @@ export const register = api.raw(
           id: userId,
           name,
           email,
+          phone,
           role
         },
         expiresIn: ACCESS_TOKEN_EXPIRY,
@@ -640,9 +644,12 @@ export const me = api(
     const authData = getAuthData()!;
 
     try {
+      // Import ObjectId for proper MongoDB query
+      const { ObjectId } = await import('mongodb');
+
       // Get full user details from database
       const users = await getMongoCollection(mongoConnectionString(), 'users');
-      const user = await users.findOne({ _id: authData.userID });
+      const user = await users.findOne({ _id: new ObjectId(authData.userID) });
 
       if (!user) {
         throw APIError.notFound("User not found");
@@ -660,6 +667,7 @@ export const me = api(
         }
       };
     } catch (error) {
+      log.error(error, "Error fetching user data", { userId: authData.userID });
       throw APIError.notFound("User not found");
     }
   }
