@@ -51,20 +51,20 @@ export const createUser = api(
     if (!isValidPhone(phone)) {
       throw APIError.invalidArgument("Invalid phone format. Phone must be 10 digits.");
     }
-    
+
     // Validate name is not empty
     if (!name || name.trim().length === 0) {
       throw APIError.invalidArgument("Name cannot be empty");
     }
-    
+
     const users = await getMongoCollection(mongoConnectionString(), mongoCollectionName);
-    
+
     // Check if user with email already exists
     const existingUser = await users.findOne({ email: email.toLowerCase().trim() });
     if (existingUser) {
       throw APIError.alreadyExists("User with this email already exists");
     }
-    
+
     const newUser = {
       name: name.trim(),
       email: email.toLowerCase().trim(),
@@ -72,9 +72,9 @@ export const createUser = api(
       createdAt: new Date(),
       updatedAt: new Date(),
     };
-    
+
     const result = await users.insertOne(newUser);
-    
+
     return {
       id: result.insertedId.toString(),
       message: "User created successfully",
@@ -87,18 +87,18 @@ export const getUser = api(
   { method: "GET", path: "/users/:id", expose: true },
   async ({ id }: { id: string }): Promise<GetUserResponse> => {
     const users = await getMongoCollection(mongoConnectionString(), mongoCollectionName);
-    
+
     // Validate ObjectId format
     if (!ObjectId.isValid(id)) {
       throw APIError.invalidArgument("Invalid user ID format");
     }
-    
+
     const user = await users.findOne({ _id: new ObjectId(id) });
-    
+
     if (!user) {
       throw APIError.notFound("User not found");
     }
-    
+
     // Convert MongoDB document to plain object
     const plainUser: User = {
       _id: user._id?.toString(),
@@ -108,7 +108,7 @@ export const getUser = api(
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };
-    
+
     return { user: plainUser };
   }
 );
@@ -121,15 +121,15 @@ export const getUserByEmail = api(
     if (!isValidEmail(email)) {
       throw APIError.invalidArgument("Invalid email format");
     }
-    
+
     const users = await getMongoCollection(mongoConnectionString(), mongoCollectionName);
-    
+
     const user = await users.findOne({ email: email.toLowerCase().trim() });
-    
+
     if (!user) {
       throw APIError.notFound("User not found");
     }
-    
+
     // Convert MongoDB document to plain object
     const plainUser: User = {
       _id: user._id?.toString(),
@@ -139,7 +139,7 @@ export const getUserByEmail = api(
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };
-    
+
     return { user: plainUser };
   }
 );
@@ -149,9 +149,9 @@ export const listUsers = api(
   { method: "GET", path: "/users", expose: true },
   async (): Promise<ListUsersResponse> => {
     const users = await getMongoCollection(mongoConnectionString(), mongoCollectionName);
-    
+
     const userList = await users.find({}).toArray();
-    
+
     // Convert MongoDB documents to plain objects
     const plainUsers: User[] = userList.map(user => ({
       _id: user._id?.toString(),
@@ -161,7 +161,7 @@ export const listUsers = api(
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     }));
-    
+
     return { users: plainUsers };
   }
 );
@@ -174,27 +174,27 @@ export const updateUser = api(
     if (!ObjectId.isValid(id)) {
       throw APIError.invalidArgument("Invalid user ID format");
     }
-    
+
     // Validate email format if provided
     if (email && !isValidEmail(email)) {
       throw APIError.invalidArgument("Invalid email format");
     }
-    
+
     // Validate phone format if provided
     if (phone && !isValidPhone(phone)) {
       throw APIError.invalidArgument("Invalid phone format. Phone must be 10 digits.");
     }
-    
+
     // Validate name if provided
     if (name && name.trim().length === 0) {
       throw APIError.invalidArgument("Name cannot be empty");
     }
-    
+
     const users = await getMongoCollection(mongoConnectionString(), mongoCollectionName);
-    
+
     // If email is being updated, check if it already exists
     if (email) {
-      const existingUser = await users.findOne({ 
+      const existingUser = await users.findOne({
         email: email.toLowerCase().trim(),
         _id: { $ne: new ObjectId(id) }
       });
@@ -202,11 +202,11 @@ export const updateUser = api(
         throw APIError.alreadyExists("User with this email already exists");
       }
     }
-    
+
     const updateData: any = {
       updatedAt: new Date(),
     };
-    
+
     if (name) updateData.name = name.trim();
     if (email) updateData.email = email.toLowerCase().trim();
     if (phone) updateData.phone = phone.trim();
@@ -215,32 +215,148 @@ export const updateUser = api(
       { _id: new ObjectId(id) },
       { $set: updateData }
     );
-    
+
     if (result.matchedCount === 0) {
       throw APIError.notFound("User not found");
     }
-    
+
     return { message: "User updated successfully" };
   }
 );
 
 // Delete a user
 export const deleteUser = api(
-  { method: "DELETE", path: "/users/:id", expose: true },
+  { method: "DELETE", path: "/users/:id", expose: true, auth: true },
   async ({ id }: { id: string }): Promise<{ message: string }> => {
     const users = await getMongoCollection(mongoConnectionString(), mongoCollectionName);
-    
+
     // Validate ObjectId format
     if (!ObjectId.isValid(id)) {
       throw APIError.invalidArgument("Invalid user ID format");
     }
-    
+
     const result = await users.deleteOne({ _id: new ObjectId(id) });
-    
+
     if (result.deletedCount === 0) {
       throw APIError.notFound("User not found");
     }
-    
+
     return { message: "User deleted successfully" };
   }
-); 
+);
+
+// Update current user's profile (authenticated endpoint)
+export const updateProfile = api(
+  { method: "PUT", path: "/users/profile", expose: true, auth: true },
+  async ({ name, phone }: { name?: string; phone?: string }): Promise<{ message: string; user: User }> => {
+    // Get auth data from the request
+    const { getAuthData } = await import("~encore/auth");
+    const authData = getAuthData()!;
+
+    // Validate phone format if provided
+    if (phone && !isValidPhone(phone)) {
+      throw APIError.invalidArgument("Invalid phone format. Phone must be 10 digits.");
+    }
+
+    // Validate name if provided
+    if (name && name.trim().length === 0) {
+      throw APIError.invalidArgument("Name cannot be empty");
+    }
+
+    const users = await getMongoCollection(mongoConnectionString(), mongoCollectionName);
+
+    const updateData: any = {
+      updatedAt: new Date(),
+    };
+
+    if (name) updateData.name = name.trim();
+    if (phone) updateData.phone = phone.trim();
+
+    const result = await users.findOneAndUpdate(
+      { _id: new ObjectId(authData.userID) },
+      { $set: updateData },
+      { returnDocument: 'after' }
+    );
+
+    if (!result) {
+      throw APIError.notFound("User not found");
+    }
+
+    // Convert MongoDB document to plain object
+    const plainUser: User = {
+      _id: result._id?.toString(),
+      name: result.name,
+      email: result.email,
+      phone: result.phone,
+      createdAt: result.createdAt,
+      updatedAt: result.updatedAt,
+    };
+
+    return {
+      message: "Profile updated successfully",
+      user: plainUser
+    };
+  }
+);
+
+// Get current user's profile (authenticated endpoint)
+export const getProfile = api(
+  { method: "GET", path: "/users/profile", expose: true, auth: true },
+  async (): Promise<GetUserResponse> => {
+    // Get auth data from the request
+    const { getAuthData } = await import("~encore/auth");
+    const authData = getAuthData()!;
+
+    const users = await getMongoCollection(mongoConnectionString(), mongoCollectionName);
+
+    const user = await users.findOne({ _id: new ObjectId(authData.userID) });
+
+    if (!user) {
+      throw APIError.notFound("User not found");
+    }
+
+    // Convert MongoDB document to plain object
+    const plainUser: User = {
+      _id: user._id?.toString(),
+      name: user.name,
+      email: user.email,
+      phone: user.phone,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    };
+
+    return { user: plainUser };
+  }
+);
+
+// Get list of users that the authenticated user can access
+export const getMyAccessibleUsers = api(
+  { method: "GET", path: "/users/accessible", expose: true, auth: true },
+  async (): Promise<ListUsersResponse> => {
+    // Get auth data from the request
+    const { getAuthData } = await import("~encore/auth");
+    const authData = getAuthData()!;
+
+    const users = await getMongoCollection(mongoConnectionString(), mongoCollectionName);
+
+    // For now, just return the current user's data
+    // In a real app, you might implement role-based access control here
+    const user = await users.findOne({ _id: new ObjectId(authData.userID) });
+
+    if (!user) {
+      return { users: [] };
+    }
+
+    // Convert MongoDB document to plain object
+    const plainUser: User = {
+      _id: user._id?.toString(),
+      name: user.name,
+      email: user.email,
+      phone: user.phone,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    };
+
+    return { users: [plainUser] };
+  }
+);

@@ -5,9 +5,6 @@
         },
         "angular-docs": {
             "url": "https://gitmcp.io/angular/angular"
-        },
-        "stagewise-docs": {
-            "url": "https://gitmcp.io/stagewise-io/stagewise"
         }
     }
 }

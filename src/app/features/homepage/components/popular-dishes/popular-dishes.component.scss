@@ -94,16 +94,33 @@
 }
 
 .dishes-grid {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 1rem;
-  justify-content: flex-start;
+
+  // Desktop: 3 columns for wide screens
+  @media (min-width: 1200px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  // Tablet: 2 columns for medium screens
+  @media (min-width: 768px) and (max-width: 1199px) {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+
+  // Mobile: 1 column for small screens
+  @media (max-width: 767px) {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
 }
 
 .dish-card {
-  flex: 1;
   border-radius: 4px;
   overflow: hidden;
   transition: transform 0.2s ease;
+  min-width: 0; // Prevents grid items from overflowing
 
   &:hover {
     transform: translateY(-2px);
