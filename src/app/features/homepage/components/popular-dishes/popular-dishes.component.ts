@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DishService } from '../../services/dish.service';
+import { getCategoryColor } from '../../../../shared/utils/color-generator.util';
 
 @Component({
   selector: 'app-popular-dishes',
@@ -24,7 +25,7 @@ import { DishService } from '../../services/dish.service';
         @for (dish of dishService.dishes; track dish.id) {
           <div class="dish-card">
             <div class="card-header">
-              <div class="dish-logo">
+              <div class="dish-logo" [style.background-color]="getDishColor('food')">
                 <span>{{ getDishInitial(dish.name) }}</span>
               </div>
               <h4 class="dish-title">{{ dish.name }}</h4>
@@ -49,7 +50,7 @@ import { DishService } from '../../services/dish.service';
                 }
                 <!-- <div class="description">{{ dish.description }}</div> -->
               </div>
-              <button class="order-btn">View</button>
+              <button [style.background-color]="getDishColor('food')" class="order-btn">View</button>
             </div>
           </div>
         }
@@ -62,6 +63,13 @@ export class PopularDishesComponent {
   constructor(public dishService: DishService) {}
 
   getDishInitial(dishName: string): string {
-    return dishName.charAt(0).toUpperCase();
+    if (dishName) {
+      return dishName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    }
+    return '';
+  }
+
+  getDishColor(category: string): string {
+    return getCategoryColor(category);
   }
 }

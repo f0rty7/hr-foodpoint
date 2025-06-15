@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { JobService } from '../../services/job.service';
+import { getCategoryColor } from '../../../../shared/utils/color-generator.util';
 
 @Component({
   selector: 'app-job-listings',
@@ -36,7 +37,7 @@ import { JobService } from '../../services/job.service';
         @for (job of jobService.jobs; track job.id) {
           <div class="job-card">
             <div class="card-header">
-              <div class="company-logo">
+              <div class="company-logo" [style.background-color]="getCompanyColor('tech')">
                 <span>{{ getCompanyInitial(job.company) }}</span>
               </div>
             </div>
@@ -58,7 +59,7 @@ import { JobService } from '../../services/job.service';
                 <div class="salary">{{ job.salary }}</div>
                 <div class="location">{{ job.location }}</div>
               </div>
-              <button class="apply-btn">View</button>
+              <button [style.background-color]="getCompanyColor('tech')" class="apply-btn">View</button>
             </div>
           </div>
         }
@@ -72,5 +73,9 @@ export class JobListingsComponent {
 
   getCompanyInitial(companyName: string): string {
     return companyName.charAt(0).toUpperCase();
+  }
+
+  getCompanyColor(category: string): string {
+    return getCategoryColor(category);
   }
 }
