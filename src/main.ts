@@ -4,9 +4,9 @@ import { AppComponent } from './app/app.component';
 import { initToolbar } from '@stagewise/toolbar';
 import { AngularPlugin } from '@stagewise-plugins/angular';
 
-initToolbar({
-  plugins: [AngularPlugin],
-});
+// initToolbar({
+//   plugins: [AngularPlugin],
+// });
 
 bootstrapApplication(AppComponent, appConfig)
   .catch((err) => console.error(err));
