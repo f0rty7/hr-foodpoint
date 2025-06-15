@@ -10,8 +10,10 @@
     "start": "encore run --listen=0.0.0.0",
     "ng": "ng",
     "ui": "ng serve",
-    "build": "ng build",
-    "build:prod": "ng build --configuration production",
+    "build:dev": "ng build",
+    "build": "ng build --configuration production",
+    "sync_frontend_assets": "cp -r dist/hr-foodpoint/browser/* app/frontend/assets/",
+    "postbuild": "npm run sync_frontend_assets",
     "watch": "ng build --watch --configuration development",
     "ng-test": "ng test"
   },

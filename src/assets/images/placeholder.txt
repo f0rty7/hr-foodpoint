@@ -1,8 +1,0 @@
-Placeholder images for the homepage component:
-
-1. dal-makhani.jpg - Indian dal curry image
-2. butter-chicken.jpg - Butter chicken dish image
-3. palak-paneer.jpg - Palak paneer dish image
-4. kitchen.jpg - Professional kitchen image
-
-Note: These should be replaced with actual food and kitchen images for production use.
