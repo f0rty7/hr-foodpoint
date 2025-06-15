@@ -1,5 +1,6 @@
 import { Injectable, inject, signal, resource } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../../environments/environment';
 
 export interface Job {
   id: number;
@@ -17,15 +18,14 @@ export interface Job {
 })
 export class JobService {
   private readonly http = inject(HttpClient);
-  private readonly API_BASE_URL = 'http://0.0.0.0:4000/homepage'; // Replace with your actual API URL
+  private readonly API_BASE_URL = environment.apiUrl + 'homepage'; // Use environment variable
 
   // Signal to trigger resource refresh
   private refreshTrigger = signal(0);
 
   // Resource for fetching all jobs
   readonly jobsResource = resource({
-    request: () => ({ refreshId: this.refreshTrigger() }),
-    loader: async ({ request, abortSignal }) => {
+    loader: async ({ abortSignal }) => {
       try {
         const response = await fetch(`${this.API_BASE_URL}/jobs`, {
           signal: abortSignal
@@ -37,6 +37,11 @@ export class JobService {
 
         const data = await response.json();
 
+        // Log in development environment
+        if (environment.enableLogging) {
+          console.log('Fetched jobs:', data);
+        }
+
         // Extract jobs array from the response object
         return data.jobs as Job[];
       } catch (error) {
@@ -44,7 +49,9 @@ export class JobService {
           throw error; // Re-throw abort errors
         }
 
-        console.warn('Failed to fetch jobs from API, using fallback data:', error);
+        if (environment.enableLogging) {
+          console.warn('Failed to fetch jobs from API, using fallback data:', error);
+        }
         // Fallback to mock data if API fails
         return this.getMockJobs();
       }
@@ -55,15 +62,15 @@ export class JobService {
   private jobIdSignal = signal<number | undefined>(undefined);
 
   readonly jobByIdResource = resource({
-    request: () => {
+    params: () => {
       const id = this.jobIdSignal();
       return id ? { id } : undefined;
     },
-    loader: async ({ request, abortSignal }) => {
-      if (!request?.id) return null;
+    loader: async ({ params, abortSignal }) => {
+      if (!params?.id) return null;
 
       try {
-        const response = await fetch(`${this.API_BASE_URL}/jobs/${request.id}`, {
+        const response = await fetch(`${this.API_BASE_URL}/jobs/${params.id}`, {
           signal: abortSignal
         });
 
@@ -77,10 +84,12 @@ export class JobService {
           throw error;
         }
 
-        console.warn('Failed to fetch job from API:', error);
+        if (environment.enableLogging) {
+          console.warn('Failed to fetch job from API:', error);
+        }
         // Fallback to finding in current jobs
         const jobs = this.jobsResource.value();
-        return jobs?.find((job: Job) => job.id === request.id) || null;
+        return jobs?.find((job: Job) => job.id === params.id) || null;
       }
     }
   });
@@ -115,6 +124,7 @@ export class JobService {
   // Trigger a complete refresh by updating the refresh signal
   forceRefresh(): void {
     this.refreshTrigger.update(value => value + 1);
+    this.jobsResource.reload();
   }
 
   searchJobs(query: string): Job[] {

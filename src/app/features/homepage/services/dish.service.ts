@@ -1,5 +1,6 @@
 import { Injectable, inject, signal, resource } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../../environments/environment';
 
 export interface Dish {
   id: number;
@@ -14,15 +15,14 @@ export interface Dish {
 })
 export class DishService {
   private readonly http = inject(HttpClient);
-  private readonly API_BASE_URL = 'http://0.0.0.0:4000/homepage'; // Replace with your actual API URL
+  private readonly API_BASE_URL = environment.apiUrl + 'homepage'; // Use environment variable
 
   // Signal to trigger resource refresh
   private refreshTrigger = signal(0);
 
   // Resource for fetching all dishes
   readonly dishesResource = resource({
-    request: () => ({ refreshId: this.refreshTrigger() }),
-    loader: async ({ request, abortSignal }) => {
+    loader: async ({ abortSignal }) => {
       try {
         const response = await fetch(`${this.API_BASE_URL}/dishes`, {
           signal: abortSignal
@@ -34,6 +34,11 @@ export class DishService {
 
         const data = await response.json();
 
+        // Log in development environment
+        if (environment.enableLogging) {
+          console.log('Fetched dishes:', data);
+        }
+
         // Extract dishes array from the response object
         return data.dishes as Dish[];
       } catch (error) {
@@ -41,7 +46,9 @@ export class DishService {
           throw error; // Re-throw abort errors
         }
 
-        console.warn('Failed to fetch dishes from API, using fallback data:', error);
+        if (environment.enableLogging) {
+          console.warn('Failed to fetch dishes from API, using fallback data:', error);
+        }
         // Fallback to mock data if API fails
         return this.getMockDishes();
       }
@@ -52,15 +59,15 @@ export class DishService {
   private dishIdSignal = signal<number | undefined>(undefined);
 
   readonly dishByIdResource = resource({
-    request: () => {
+    params: () => {
       const id = this.dishIdSignal();
       return id ? { id } : undefined;
     },
-    loader: async ({ request, abortSignal }) => {
-      if (!request?.id) return null;
+    loader: async ({ params, abortSignal }) => {
+      if (!params?.id) return null;
 
       try {
-        const response = await fetch(`${this.API_BASE_URL}/dishes/${request.id}`, {
+        const response = await fetch(`${this.API_BASE_URL}/dishes/${params.id}`, {
           signal: abortSignal
         });
 
@@ -74,10 +81,12 @@ export class DishService {
           throw error;
         }
 
-        console.warn('Failed to fetch dish from API:', error);
+        if (environment.enableLogging) {
+          console.warn('Failed to fetch dish from API:', error);
+        }
         // Fallback to finding in current dishes
         const dishes = this.dishesResource.value();
-        return dishes?.find((dish: Dish) => dish.id === request.id) || null;
+        return dishes?.find((dish: Dish) => dish.id === params.id) || null;
       }
     }
   });
@@ -112,6 +121,7 @@ export class DishService {
   // Trigger a complete refresh by updating the refresh signal
   forceRefresh(): void {
     this.refreshTrigger.update(value => value + 1);
+    this.dishesResource.reload();
   }
 
   private getMockDishes(): Dish[] {

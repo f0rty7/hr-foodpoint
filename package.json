@@ -47,14 +47,13 @@
     "@angular/platform-browser": "^20.0.3",
     "@angular/platform-browser-dynamic": "^20.0.3",
     "@angular/router": "^20.0.3",
+    "bcrypt": "^5.1.1",
     "encore.dev": "^1.48.3",
     "g": "^2.0.1",
-    "mongodb": "^6.17.0",
     "jsonwebtoken": "^9.0.2",
-    "bcrypt": "^5.1.1",
+    "mongodb": "^6.17.0",
     "rxjs": "~7.8.0",
-    "tslib": "^2.3.0",
-    "zone.js": "~0.15.0"
+    "tslib": "^2.3.0"
   },
   "optionalDependencies": {
     "@rollup/rollup-linux-x64-gnu": "^4.13.0"
