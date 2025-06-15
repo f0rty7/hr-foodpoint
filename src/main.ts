@@ -3,10 +3,13 @@ import { appConfig } from './app/app.config';
 import { AppComponent } from './app/app.component';
 import { initToolbar } from '@stagewise/toolbar';
 import { AngularPlugin } from '@stagewise-plugins/angular';
+import { environment } from './environments/environment';
 
-// initToolbar({
-//   plugins: [AngularPlugin],
-// });
+if (!environment.production) {
+  initToolbar({
+    plugins: [AngularPlugin],
+  });
+}
 
 bootstrapApplication(AppComponent, appConfig)
   .catch((err) => console.error(err));

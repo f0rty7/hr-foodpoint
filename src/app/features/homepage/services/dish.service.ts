@@ -1,4 +1,4 @@
-import { Injectable, inject, signal, resource } from '@angular/core';
+import { Injectable, inject, signal, resource, computed, effect } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 
@@ -19,6 +19,64 @@ export class DishService {
 
   // Signal to trigger resource refresh
   private refreshTrigger = signal(0);
+
+  // Search filter signal (Angular v20 feature)
+  searchQuery = signal('');
+
+  // Computed signal for filtered dishes (Angular v20 stable computed)
+  filteredDishes = computed(() => {
+    const dishes = this.dishesResource.value() || [];
+    const query = this.searchQuery().toLowerCase();
+
+    if (!query) return dishes;
+
+    return dishes.filter(dish =>
+      dish.name.toLowerCase().includes(query) ||
+      dish.description.toLowerCase().includes(query)
+    );
+  });
+
+  // Computed signal for dish statistics (Angular v20 stable feature)
+  dishStats = computed(() => {
+    const dishes = this.dishesResource.value() || [];
+    return {
+      total: dishes.length,
+      averagePrice: dishes.reduce((sum, dish) => sum + (dish.price || 0), 0) / dishes.length || 0,
+      priceRange: {
+        min: Math.min(...dishes.map(d => d.price || 0)),
+        max: Math.max(...dishes.map(d => d.price || 0))
+      }
+    };
+  });
+
+  constructor() {
+    // Angular v20 stable effect API for side effects
+    effect(() => {
+      const stats = this.dishStats();
+      if (environment.enableLogging) {
+        console.log('📊 Dish Statistics Updated:', stats);
+      }
+
+      // Could trigger analytics, local storage updates, etc.
+      this.persistSearchPreferences();
+    });
+
+    effect(() => {
+      const query = this.searchQuery();
+      if (query && environment.enableLogging) {
+        console.log('🔍 Search Query Changed:', query);
+      }
+    });
+  }
+
+  private persistSearchPreferences(): void {
+    // Example: Store search preferences in localStorage
+    const preferences = {
+      lastSearch: this.searchQuery(),
+      lastUpdated: Date.now()
+    };
+    localStorage.setItem('dish-preferences', JSON.stringify(preferences));
+  }
 
   // Resource for fetching all dishes
   readonly dishesResource = resource({
