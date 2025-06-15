@@ -38,8 +38,10 @@ import { AuthService } from '../../../auth/services/auth.service';
                   [matMenuTriggerFor]="userDropdown"
                   class="user-button"
                 >
-                  <mat-icon>account_circle</mat-icon>
-                  <mat-icon>keyboard_arrow_down</mat-icon>
+                  <span class="user-icon-container">
+                    <mat-icon>account_circle</mat-icon>
+                    <mat-icon>keyboard_arrow_down</mat-icon>
+                  </span>
                   <span>{{ authService.currentUser()?.name }}</span>
                 </button>
                 <mat-menu #userDropdown="matMenu">

@@ -448,6 +448,19 @@
   .mat-mdc-button-ripple {
     display: none !important;
   }
+
+  .user-icon-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  ::ng-deep .mdc-button__label {
+    display: flex;
+    flex-direction: row-reverse;
+    align-items: center;
+    gap: 0.5rem;
+  }
 }
 
 // Mobile user section styles
