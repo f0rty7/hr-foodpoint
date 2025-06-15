@@ -38,9 +38,9 @@ import { DishService } from '../../services/dish.service';
 
             <!-- <h4 class="dish-title">{{ dish.name }}</h4> -->
 
-            <div class="dish-tags">
+            <!-- <div class="dish-tags">
               <span class="tag">Popular</span>
-            </div>
+            </div> -->
 
             <div class="card-footer">
               <div class="dish-details">

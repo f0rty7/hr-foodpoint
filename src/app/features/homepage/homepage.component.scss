@@ -18,12 +18,13 @@
 }
 
 .content-sections {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 3rem;
   margin-bottom: 3rem;
 
   @media (max-width: 768px) {
-    grid-template-columns: 1fr;
+    // grid-template-columns: 1fr;
     gap: 2rem;
   }
 }

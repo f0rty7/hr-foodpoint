@@ -122,7 +122,7 @@
 .dish-card {
   background: white;
   border-radius: 16px;
-  padding: 1.5rem;
+  padding: 1.15rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   border: 1px solid #f0f0f0;
   flex: 0 0 320px;
@@ -209,7 +209,7 @@
 .card-footer {
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
+  align-items: center;
   margin-top: auto;
   gap: 1rem;
 }
