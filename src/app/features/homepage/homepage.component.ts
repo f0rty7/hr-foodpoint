@@ -22,10 +22,10 @@ import { AboutUsComponent } from './components/about-us/about-us.component';
   template: `
     <div class="homepage-container">
       <app-header />
-      <app-hero-section />
 
       <main class="main-content">
         <section class="content-sections">
+          <app-hero-section />
           <app-popular-dishes />
           <app-job-listings />
         </section>

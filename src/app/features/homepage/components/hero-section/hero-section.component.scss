@@ -1,12 +1,14 @@
 .hero {
   text-align: center;
   padding: 2rem;
-  // background-color: #faf8f6;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
 }
 
 .hero-content {
-  max-width: 800px;
-  margin: 0 auto;
+  // max-width: 800px;
+  // margin: 0 auto;
 }
 
 .hero-title {

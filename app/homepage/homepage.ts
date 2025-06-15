@@ -42,7 +42,7 @@ export const getHomepageData = api(
                 {
                     id: 1,
                     name: "Paneer Butter Masala",
-                    image: "https://images.unsplash.com/photo-1701579231378-3726490a407b?q=80&w=2574&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+                    image: "https://media-assets.swiggy.com/swiggy/image/upload/FOOD_CATALOG/IMAGES/CMS/2025/5/13/fbbd118b-b12b-4be3-abb5-8f95de6d42de_81a38b33-a4f5-4b6d-b98c-746d8b7bbc0b.jpg",
                     description: "Rich and creamy paneer curry with aromatic spices",
                     price: 320
                 },
@@ -59,6 +59,13 @@ export const getHomepageData = api(
                     image: "https://images.unsplash.com/photo-1601050690597-df0568f70950?w=300&h=200&fit=crop&crop=center",
                     description: "Crispy triangular pastries filled with spiced potatoes",
                     price: 60
+                },
+                {
+                    id: 4,
+                    name: "Palak Paneer & Rice",
+                    image: "https://media-assets.swiggy.com/swiggy/image/upload/FOOD_CATALOG/IMAGES/CMS/2025/5/13/02c67b7d-bb69-4326-b096-8ad5d0d0eb59_a3b4a12d-54ca-4793-abd1-bfbc1239d969.jpg",
+                    description: "Crispy triangular pastries filled with spiced potatoes",
+                    price: 180
                 }
             ],
             jobs: [
@@ -91,7 +98,17 @@ export const getHomepageData = api(
                     description: "Build scalable web applications and REST APIs",
                     salary: "₹6-12 LPA",
                     requirements: ["Angular", "TypeScript", "REST APIs", "PostgreSQL"]
-                }
+                },
+                {
+                  id: 4,
+                  title: "Software development intern",
+                  company: "TCS",
+                  location: "Bengaluru",
+                  type: "Internship",
+                  description: "Work on enterprise software solutions and cloud infrastructure",
+                  salary: "₹4-6 LPA",
+                  requirements: ["Java", "Spring Boot", "MySQL", "AWS"]
+              },
             ],
             aboutUs: {
                 title: "About us",

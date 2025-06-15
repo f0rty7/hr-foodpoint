@@ -20,15 +20,36 @@ import { DishService } from '../../services/dish.service';
         <h2 class="section-title">Popular Dishes</h2>
       </div>
 
-      <div class="dishes-grid">
+      <div class="dishes-list">
         @for (dish of dishService.dishes; track dish.id) {
           <div class="dish-card">
-            <div class="dish-image" [style.background-image]="'url(' + dish.image + ')'">
+            <div class="card-header">
+              <div class="dish-logo">
+                <span>{{ getDishInitial(dish.name) }}</span>
+              </div>
+              <h4 class="dish-title">{{ dish.name }}</h4>
             </div>
-            <div class="dish-content">
-              <h4 class="dish-name">{{ dish.name }}</h4>
-              <p class="dish-description">{{ dish.description }}</p>
-              <button class="order-btn" type="button">Order Now</button>
+
+            <!-- <div class="dish-info">
+              <div class="dish-category">Indian Cuisine</div>
+              <div class="availability">Available</div>
+            </div> -->
+            <img class="dish-image" [src]="dish.image" [alt]="dish.name" loading="lazy" />
+
+            <!-- <h4 class="dish-title">{{ dish.name }}</h4> -->
+
+            <div class="dish-tags">
+              <span class="tag">Popular</span>
+            </div>
+
+            <div class="card-footer">
+              <div class="dish-details">
+                @if (dish.price) {
+                  <div class="price">₹{{ dish.price }}</div>
+                }
+                <!-- <div class="description">{{ dish.description }}</div> -->
+              </div>
+              <button class="order-btn">View</button>
             </div>
           </div>
         }
@@ -39,4 +60,8 @@ import { DishService } from '../../services/dish.service';
 })
 export class PopularDishesComponent {
   constructor(public dishService: DishService) {}
+
+  getDishInitial(dishName: string): string {
+    return dishName.charAt(0).toUpperCase();
+  }
 }

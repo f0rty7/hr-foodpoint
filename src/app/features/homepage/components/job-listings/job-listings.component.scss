@@ -46,10 +46,17 @@
   flex-direction: row;
   gap: 1rem;
   overflow-x: auto;
+  padding: 7px;
+  margin-left: -7px;
+  max-width: calc(1200px - 14px);
 
   @media (max-width: 768px) {
     flex-direction: column;
   }
+}
+
+.jobs-list::-webkit-scrollbar {
+  display: none;
 }
 
 .job-card {
@@ -67,7 +74,7 @@
 
   &:hover {
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-    transform: scale(0.95);
+    transform: scale(0.97);
   }
 
   @media (max-width: 768px) {
