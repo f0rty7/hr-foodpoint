@@ -137,7 +137,7 @@ export class FoodListingService {
   });
 
   // Signal for detailed items fetched from API
-  private detailedItems = signal<MenuItem[]>([]);
+  private detailedItems = signal<ItemVO[]>([]);
 
   // Computed signal for filtered and sorted items (now uses API data)
   readonly flattenedItems = computed(() => {
@@ -160,29 +160,29 @@ export class FoodListingService {
     // Apply filters
     if (query) {
       filtered = filtered.filter(item =>
-        item.name.toLowerCase().includes(query) ||
-        item.description.toLowerCase().includes(query)
+        item.item.name.toLowerCase().includes(query) ||
+        item.item.description.toLowerCase().includes(query)
       );
     }
 
     if (category) {
-      filtered = filtered.filter(item => item.category_id === category);
+      filtered = filtered.filter(item => item.main_category_id === category);
     }
 
     if (vegOnly) {
-      filtered = filtered.filter(item => item.is_veg === 'VEG');
+      filtered = filtered.filter(item => item.item.is_veg === 'VEG');
     }
 
     if (inStockOnly) {
-      filtered = filtered.filter(item => item.in_stock === 1);
+      filtered = filtered.filter(item => item.item.in_stock === 1);
     }
 
     if (priceRange.min !== undefined) {
-      filtered = filtered.filter(item => item.price >= priceRange.min!);
+      filtered = filtered.filter(item => item.item.price >= priceRange.min!);
     }
 
     if (priceRange.max !== undefined) {
-      filtered = filtered.filter(item => item.price <= priceRange.max!);
+      filtered = filtered.filter(item => item.item.price <= priceRange.max!);
     }
 
     // Apply sorting
@@ -191,13 +191,13 @@ export class FoodListingService {
 
       switch (sortBy) {
         case 'name':
-          comparison = a.name.localeCompare(b.name);
+          comparison = a.item.name.localeCompare(b.item.name);
           break;
         case 'price':
-          comparison = a.price - b.price;
+          comparison = a.item.price - b.item.price;
           break;
         case 'popularity':
-          comparison = (b.recommended ? 1 : 0) - (a.recommended ? 1 : 0);
+          comparison = (b.item.recommended ? 1 : 0) - (a.item.recommended ? 1 : 0);
           break;
       }
 
@@ -222,13 +222,13 @@ export class FoodListingService {
       totalItems: items.length,
       filteredItems: filtered.length,
       categories: this.categories().length,
-      averagePrice: items.reduce((sum, item) => sum + item.price, 0) / items.length || 0,
+      averagePrice: items.reduce((sum, item) => sum + item.item.price, 0) / items.length || 0,
       priceRange: {
-        min: Math.min(...items.map(item => item.price)),
-        max: Math.max(...items.map(item => item.price))
+        min: Math.min(...items.map(item => item.item.price)),
+        max: Math.max(...items.map(item => item.item.price))
       },
-      vegItems: items.filter(item => item.is_veg === 'VEG').length,
-      inStockItems: items.filter(item => item.in_stock === 1).length
+      vegItems: items.filter(item => item.item.is_veg === 'VEG').length,
+      inStockItems: items.filter(item => item.item.in_stock === 1).length
     };
   });
 
@@ -241,7 +241,8 @@ export class FoodListingService {
 
       if (menu?.all_items && this.detailedItems().length === 0) {
         // Extract MenuItem objects from all_items
-        const items = menu.all_items.map(itemVO => itemVO.item);
+        // const items = menu.all_items.map(itemVO => itemVO.item);
+        const items = menu.all_items;
         this.detailedItems.set(items);
 
         if (environment.enableLogging) {

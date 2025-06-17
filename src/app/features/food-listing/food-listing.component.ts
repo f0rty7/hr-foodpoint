@@ -160,8 +160,8 @@ import { HeroSectionComponent } from './components/hero-section/hero-section.com
         <!-- Food Grid -->
         @if (!foodService.isLoading && !foodService.hasError) {
           <div class="food-grid">
-            @for (item of foodService.filteredItems(); track item.id) {
-              <app-food-card [menuItem]="item" />
+            @for (item of foodService.filteredItems(); track item.item.id) {
+              <app-food-card [menuItem]="item.item" />
             } @empty {
               <div class="empty-state">
                 <div class="empty-icon">🍽️</div>

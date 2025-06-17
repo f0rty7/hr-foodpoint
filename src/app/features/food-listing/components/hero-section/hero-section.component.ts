@@ -10,7 +10,7 @@ import { CommonModule } from '@angular/common';
       <div class="hero-content">
         <div class="hero-text">
           <h1 class="hero-title">
-            Healthy, Affordable Meals Delivered<br>
+            Healthy, Affordable , Homelike Foods<br>
             Quickly to Your Door
           </h1>
           <p class="hero-subtitle">Ready to Enjoy in No Time!</p>
@@ -20,7 +20,7 @@ import { CommonModule } from '@angular/common';
         <div class="hero-images">
           <div class="image-grid">
             <div class="main-image">
-              <img src="https://picsum.photos/400/300?random=burger" alt="Delicious burger" loading="lazy" />
+              <img src="/assets/images/food-hero-main.webp" alt="Delicious burger" loading="lazy" />
             </div>
             <div class="side-images">
               <div class="side-image">
