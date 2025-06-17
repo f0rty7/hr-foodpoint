@@ -1,0 +1,141 @@
+.hero-section {
+  background: linear-gradient(135deg, #fef5e7 0%, #fed7aa 100%);
+  padding: 60px 20px;
+  margin-bottom: 40px;
+
+  @media (max-width: 768px) {
+    padding: 40px 20px;
+  }
+}
+
+.hero-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 60px;
+  align-items: center;
+
+  @media (max-width: 1024px) {
+    grid-template-columns: 1fr;
+    gap: 40px;
+    text-align: center;
+  }
+}
+
+.hero-text {
+  .hero-title {
+    font-size: 48px;
+    font-weight: 800;
+    line-height: 1.2;
+    color: #2d3748;
+    margin: 0 0 16px 0;
+
+    @media (max-width: 768px) {
+      font-size: 36px;
+    }
+
+    @media (max-width: 480px) {
+      font-size: 28px;
+    }
+  }
+
+  .hero-subtitle {
+    font-size: 18px;
+    color: #718096;
+    margin: 0 0 32px 0;
+    font-weight: 500;
+  }
+
+  .cta-button {
+    background: #ed8936;
+    color: white;
+    border: none;
+    padding: 16px 32px;
+    font-size: 18px;
+    font-weight: 600;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(237, 137, 54, 0.3);
+
+    &:hover {
+      background: #dd7324;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(237, 137, 54, 0.4);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+  }
+}
+
+.hero-images {
+  .image-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 16px;
+    height: 400px;
+    overflow: hidden;
+    width: 100%;
+    max-width: 100%;
+
+    @media (max-width: 768px) {
+      height: 300px;
+    }
+
+    .main-image {
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      position: relative;
+      width: 100%;
+      height: 100%;
+      max-width: 100%;
+      max-height: 100%;
+
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+        display: block;
+
+        &:hover {
+          transform: scale(1.02);
+        }
+      }
+    }
+
+    .side-images {
+      display: grid;
+      grid-template-rows: repeat(4, 1fr);
+      gap: 12px;
+      overflow: hidden;
+      width: 100%;
+      height: 100%;
+      max-width: 100%;
+      max-height: 100%;
+
+      .side-image {
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        position: relative;
+
+        img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          transition: transform 0.3s ease;
+          display: block;
+
+          &:hover {
+            transform: scale(1.02);
+          }
+        }
+      }
+    }
+  }
+}

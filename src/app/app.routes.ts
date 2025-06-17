@@ -14,6 +14,10 @@ export const routes: Routes = [
     loadChildren: () => import('./features/profile/profile.routes').then(m => m.profileRoutes)
   },
   {
+    path: 'menu',
+    loadChildren: () => import('./features/food-listing/food-listing.routes').then(m => m.foodListingRoutes)
+  },
+  {
     path: '',
     redirectTo: '/home',
     pathMatch: 'full'

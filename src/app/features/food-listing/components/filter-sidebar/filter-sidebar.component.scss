@@ -1,0 +1,253 @@
+.filter-sidebar-content {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  height: fit-content;
+  position: sticky;
+  top: 20px;
+
+  @media (max-width: 768px) {
+    position: static;
+    margin-top: 20px;
+  }
+}
+
+.filter-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #2d3748;
+  margin: 0 0 24px 0;
+  border-bottom: 2px solid #e2e8f0;
+  padding-bottom: 12px;
+}
+
+.filter-section {
+  margin-bottom: 28px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  .filter-section-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #4a5568;
+    margin: 0 0 16px 0;
+  }
+}
+
+.price-inputs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  width: 100%;
+  max-width: 100%;
+
+  .price-input {
+    flex: 1;
+    min-width: 0;
+    width: 100%;
+    max-width: calc(50% - 16px);
+    padding: 8px 10px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s ease;
+    box-sizing: border-box;
+
+    &:focus {
+      border-color: #ed8936;
+      box-shadow: 0 0 0 3px rgba(237, 137, 54, 0.1);
+    }
+
+    &::placeholder {
+      color: #a0aec0;
+    }
+  }
+
+  .price-separator {
+    color: #a0aec0;
+    font-weight: 500;
+  }
+}
+
+.price-range-info {
+  font-size: 12px;
+  color: #718096;
+  margin-top: 8px;
+}
+
+.filter-option, .category-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  padding: 8px;
+  border-radius: 8px;
+
+  &:hover {
+    background: #f7fafc;
+  }
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  input[type="checkbox"], input[type="radio"] {
+    display: none;
+  }
+
+  .checkmark, .radio-mark {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #e2e8f0;
+    border-radius: 4px;
+    position: relative;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+
+    &::after {
+      content: '';
+      position: absolute;
+      display: none;
+    }
+  }
+
+  .radio-mark {
+    border-radius: 50%;
+
+    &::after {
+      width: 8px;
+      height: 8px;
+      background: white;
+      border-radius: 50%;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+  }
+
+  .checkmark::after {
+    left: 6px;
+    top: 2px;
+    width: 6px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
+
+  input:checked + .checkmark,
+  input:checked + .radio-mark {
+    background: #ed8936;
+    border-color: #ed8936;
+
+    &::after {
+      display: block;
+    }
+  }
+
+  span:not(.checkmark):not(.radio-mark) {
+    font-size: 14px;
+    color: #4a5568;
+    font-weight: 500;
+  }
+}
+
+.category-list {
+  max-height: 200px;
+  overflow-y: auto;
+  padding-right: 4px;
+
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 2px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #cbd5e0;
+    border-radius: 2px;
+
+    &:hover {
+      background: #a0aec0;
+    }
+  }
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+
+  .stat-item {
+    text-align: center;
+    padding: 12px;
+    background: #f7fafc;
+    border-radius: 8px;
+    transition: background-color 0.2s ease;
+
+    &:hover {
+      background: #edf2f7;
+    }
+
+    .stat-value {
+      font-size: 20px;
+      font-weight: 700;
+      color: #ed8936;
+      margin-bottom: 4px;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: #718096;
+      font-weight: 500;
+    }
+  }
+}
+
+.filter-actions {
+  border-top: 1px solid #e2e8f0;
+  padding-top: 20px;
+  margin-top: 24px;
+
+  .clear-filters-btn {
+    width: 100%;
+    padding: 12px;
+    background: transparent;
+    border: 2px solid #ed8936;
+    color: #ed8936;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: #ed8936;
+      color: white;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .filter-sidebar-content {
+    padding: 20px;
+  }
+
+  .filter-title {
+    font-size: 20px;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
