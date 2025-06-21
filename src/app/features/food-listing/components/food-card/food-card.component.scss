@@ -5,6 +5,7 @@
   overflow: hidden;
   transition: all 0.3s ease;
   position: relative;
+  max-width: 250px;
 
   &:hover {
     transform: translateY(-4px);
@@ -28,7 +29,6 @@
 
 .card-image {
   position: relative;
-  height: 200px;
   overflow: hidden;
 
   img {
@@ -36,6 +36,8 @@
     height: 100%;
     object-fit: cover;
     transition: transform 0.3s ease;
+    max-width: 250px;
+    max-height: 225px;
   }
 
   .recommended-badge {
@@ -168,8 +170,8 @@
       }
 
       .qty-btn {
-        width: 32px;
-        height: 32px;
+        width: 25px;
+        height: 25px;
         border: none;
         background: #ed8936;
         color: white;

@@ -48,7 +48,7 @@
     "@angular/platform-browser-dynamic": "^20.0.3",
     "@angular/router": "^20.0.3",
     "bcrypt": "^5.1.1",
-    "encore.dev": "^1.48.3",
+    "encore.dev": "^1.48.5",
     "g": "^2.0.1",
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.17.0",
