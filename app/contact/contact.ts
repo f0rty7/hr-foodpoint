@@ -95,6 +95,7 @@ export const info = api(
   { method: "GET", expose: true, path: "/api/contact/info" },
   async (): Promise<ContactInfo> => {
     return {
+      // House 9, 2nd Floor, Sharadhi Apartments, Nanjappa Layout, Adugodi, Dead End 3rd Cross Road, BTM, Bangalore
       address: {
         street: "123 Food Street",
         city: "Culinary District",
@@ -116,17 +117,6 @@ export const info = api(
         saturday: "Saturday: 10:00 AM - 6:00 PM",
         sunday: "Sunday: 12:00 PM - 5:00 PM"
       }
-    };
-  }
-);
-
-// Health check endpoint for the contact service
-export const health = api(
-  { method: "GET", expose: true, path: "/api/contact/health" },
-  async (): Promise<{ status: string; timestamp: string }> => {
-    return {
-      status: "healthy",
-      timestamp: new Date().toISOString()
     };
   }
 );
