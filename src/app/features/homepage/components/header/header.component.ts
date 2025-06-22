@@ -30,7 +30,8 @@ import { AuthService } from '../../../auth/services/auth.service';
               <button mat-menu-item>Job Search</button>
             </mat-menu>
           </div>
-                      <a href="#" class="nav-link">About</a>
+          <a href="#" class="nav-link">About</a>
+          <a routerLink="/contact" class="nav-link">Contact</a>
             @if (authService.isAuthenticated()) {
               <div class="user-menu">
                 <button
@@ -94,7 +95,8 @@ import { AuthService } from '../../../auth/services/auth.service';
                 <a href="#" class="mobile-submenu-link" (click)="closeMobileMenu()">Job Search</a>
               </div>
             </div>
-                          <a href="#" class="mobile-nav-link" (click)="closeMobileMenu()">About</a>
+            <a href="#" class="mobile-nav-link" (click)="closeMobileMenu()">About</a>
+            <a routerLink="/contact" class="mobile-nav-link" (click)="closeMobileMenu()">Contact</a>
               @if (authService.isAuthenticated()) {
                 <div class="mobile-user-section">
                   <div class="mobile-user-info">

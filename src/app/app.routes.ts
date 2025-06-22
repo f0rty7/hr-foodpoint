@@ -18,6 +18,10 @@ export const routes: Routes = [
     loadChildren: () => import('./features/food-listing/food-listing.routes').then(m => m.foodListingRoutes)
   },
   {
+    path: 'contact',
+    loadChildren: () => import('./features/contact/contact.routes').then(m => m.contactRoutes)
+  },
+  {
     path: '',
     redirectTo: '/home',
     pathMatch: 'full'

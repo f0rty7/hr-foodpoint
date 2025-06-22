@@ -70,7 +70,7 @@ interface CreateMenuItemResponse {
 export const getMenuItem = api(
   {
     method: "GET",
-    path: "/menu/item/:itemId",
+    path: "/api/menu/item/:itemId",
     auth: true,
     expose: true
   },
@@ -109,7 +109,7 @@ export const getMenuItem = api(
 export const searchMenu = api(
   {
     method: "GET",
-    path: "/menu/search",
+    path: "/api/menu/search",
     auth: true,
     expose: true
   },
@@ -192,7 +192,7 @@ export const searchMenu = api(
 export const createMenuItem = api(
   {
     method: "POST",
-    path: "/menu/items",
+    path: "/api/menu/items",
     auth: true,
     expose: true
   },

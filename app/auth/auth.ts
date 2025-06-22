@@ -162,7 +162,7 @@ async function verifyUserPassword(email: string, password: string) {
 
 // Auth parameters - what the auth handler expects from requests
 interface AuthParams {
-  authorization: Header<"Authorization">;
+  authorization?: Header<"Authorization">;
 }
 
 // Auth data - what the auth handler provides to endpoints
@@ -199,15 +199,45 @@ export const auth = authHandler<AuthParams, AuthData>(
       };
     } catch (error: any) {
       log.warn("Invalid access token", { error: error.message });
+      // For invalid tokens, we throw Unauthenticated so the request can proceed
+      // without authentication (important for static files)
       throw APIError.unauthenticated("Invalid or expired token");
     }
   }
 );
 
-// Define the API Gateway with the auth handler
+// Restore the Gateway but make it permissive for static files
 export const gateway = new Gateway({
   authHandler: auth,
 });
+
+// Helper function to manually verify authentication in endpoints
+export async function verifyAuthentication(authHeader?: string): Promise<AuthData> {
+  if (!authHeader) {
+    throw APIError.unauthenticated("Missing authorization header");
+  }
+
+  // Extract Bearer token
+  const parts = authHeader.split(' ');
+  if (parts.length !== 2 || parts[0] !== 'Bearer') {
+    throw APIError.unauthenticated("Invalid authorization header format. Expected 'Bearer <token>'");
+  }
+
+  const token = parts[1];
+
+  try {
+    const payload = verifyAccessToken(token);
+
+    return {
+      userID: payload.userId,
+      email: payload.email,
+      role: payload.role
+    };
+  } catch (error: any) {
+    log.warn("Invalid access token", { error: error.message });
+    throw APIError.unauthenticated("Invalid or expired token");
+  }
+}
 
 // Login endpoint with enhanced security
 interface LoginRequest {
@@ -231,7 +261,7 @@ interface LoginResponse {
 }
 
 export const login = api.raw(
-  { method: "POST", path: "/auth/login", expose: true },
+  { method: "POST", path: "/api/auth/login", expose: true },
   async (req, resp) => {
     try {
       // Rate limiting
@@ -367,7 +397,7 @@ interface RegisterResponse {
 }
 
 export const register = api.raw(
-  { method: "POST", path: "/auth/register", expose: true },
+  { method: "POST", path: "/api/auth/register", expose: true },
   async (req, resp) => {
     try {
       // Rate limiting
@@ -501,7 +531,7 @@ interface RefreshTokenResponse {
 }
 
 export const refreshToken = api.raw(
-  { method: "POST", path: "/auth/refresh", expose: true },
+  { method: "POST", path: "/api/auth/refresh", expose: true },
   async (req, resp) => {
     try {
       // Rate limiting
@@ -637,7 +667,7 @@ interface CurrentUserResponse {
 }
 
 export const me = api(
-  { method: "GET", path: "/auth/me", expose: true, auth: true },
+  { method: "GET", path: "/api/auth/me", expose: true, auth: true },
   async (): Promise<CurrentUserResponse> => {
     // Get auth data from the request
     const { getAuthData } = await import("~encore/auth");
@@ -680,7 +710,7 @@ interface LogoutRequest {
 }
 
 export const logout = api.raw(
-  { method: "POST", path: "/auth/logout", expose: true, auth: true },
+  { method: "POST", path: "/api/auth/logout", expose: true, auth: true },
   async (req, resp) => {
     try {
       // Get auth data from the request
@@ -755,11 +785,10 @@ interface ChangePasswordRequest {
 }
 
 export const changePassword = api(
-  { method: "POST", path: "/auth/change-password", expose: true, auth: true },
-  async ({ currentPassword, newPassword }: ChangePasswordRequest): Promise<{ message: string }> => {
-    // Get auth data from the request
-    const { getAuthData } = await import("~encore/auth");
-    const authData = getAuthData()!;
+  { method: "POST", path: "/api/auth/change-password", expose: true },
+  async ({ currentPassword, newPassword, authorization }: ChangePasswordRequest & { authorization: Header<"Authorization"> }): Promise<{ message: string }> => {
+    // Manually verify authentication
+    const authData = await verifyAuthentication(authorization);
 
     try {
       const users = await getMongoCollection(mongoConnectionString(), 'users');

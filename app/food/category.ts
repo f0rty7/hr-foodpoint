@@ -21,7 +21,7 @@ interface CreateMenuCategoryResponse {
 export const getMenu = api(
   {
     method: "GET",
-    path: "/menu",
+    path: "/api/menu",
     auth: true,
     expose: true
   },
@@ -102,7 +102,7 @@ export const getMenu = api(
 export const getMenuCategory = api(
   {
     method: "GET",
-    path: "/menu/category/:categoryId",
+    path: "/api/menu/category/:categoryId",
     auth: true,
     expose: true
   },
@@ -173,7 +173,7 @@ export const getMenuCategory = api(
 export const getMenuCategories = api(
   {
     method: "GET",
-    path: "/menu/categories",
+    path: "/api/menu/categories",
     auth: true,
     expose: true
   },
@@ -219,7 +219,7 @@ export const getMenuCategories = api(
 export const createMenuCategory = api(
   {
     method: "POST",
-    path: "/menu/categories",
+    path: "/api/menu/categories",
     auth: true,
     expose: true
   },

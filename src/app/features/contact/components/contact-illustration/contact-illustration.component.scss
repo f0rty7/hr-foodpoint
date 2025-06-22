@@ -1,0 +1,206 @@
+.illustration {
+  margin-bottom: 3rem;
+  position: relative;
+  width: 300px;
+  height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .email-icon {
+    position: relative;
+    transform: scale(1.2);
+  }
+
+  .envelope {
+    position: relative;
+    width: 120px;
+    height: 80px;
+    z-index: 2;
+
+    .envelope-back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 8px;
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+    }
+
+    .envelope-front {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #5a67d8 0%, #667eea 100%);
+      border-radius: 8px;
+      z-index: 1;
+
+      &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 0;
+        height: 0;
+        border-left: 60px solid transparent;
+        border-right: 60px solid transparent;
+        border-top: 40px solid #4c51bf;
+        border-radius: 4px 4px 0 0;
+      }
+    }
+
+    .letter {
+      position: absolute;
+      top: 15px;
+      left: 15px;
+      right: 15px;
+      bottom: 15px;
+      background: white;
+      border-radius: 4px;
+      z-index: 2;
+
+      &::before {
+        content: '';
+        position: absolute;
+        top: 8px;
+        left: 8px;
+        right: 8px;
+        height: 3px;
+        background: #e2e8f0;
+        border-radius: 2px;
+      }
+
+      &::after {
+        content: '';
+        position: absolute;
+        top: 18px;
+        left: 8px;
+        right: 20px;
+        height: 2px;
+        background: #cbd5e0;
+        border-radius: 1px;
+      }
+    }
+  }
+
+  .floating-elements {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+
+    .chat-bubble {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      width: 40px;
+      height: 30px;
+      background: #48bb78;
+      border-radius: 15px 15px 15px 5px;
+      box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3);
+
+      &::before {
+        content: '';
+        position: absolute;
+        top: 8px;
+        left: 8px;
+        right: 8px;
+        height: 2px;
+        background: white;
+        border-radius: 1px;
+      }
+
+      &::after {
+        content: '';
+        position: absolute;
+        top: 15px;
+        left: 8px;
+        width: 15px;
+        height: 2px;
+        background: white;
+        border-radius: 1px;
+      }
+    }
+
+    .airplane {
+      position: absolute;
+      top: 40px;
+      right: 30px;
+      width: 30px;
+      height: 20px;
+      background: #ed8936;
+      transform: rotate(-15deg);
+      border-radius: 0 10px 10px 0;
+      box-shadow: 0 4px 12px rgba(237, 137, 54, 0.3);
+
+      &::before {
+        content: '';
+        position: absolute;
+        top: -5px;
+        left: 10px;
+        width: 0;
+        height: 0;
+        border-left: 8px solid transparent;
+        border-right: 8px solid transparent;
+        border-bottom: 10px solid #ed8936;
+      }
+    }
+
+    .dots {
+      position: absolute;
+      bottom: 30px;
+      left: 30px;
+
+      span {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        margin-right: 4px;
+
+        &:nth-child(1) {
+          background: #e53e3e;
+        }
+
+        &:nth-child(2) {
+          background: #38b2ac;
+        }
+
+        &:nth-child(3) {
+          background: #d69e2e;
+        }
+      }
+    }
+  }
+}
+
+// Animations
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.floating-elements > * {
+  animation: float 3s ease-in-out infinite;
+
+  &:nth-child(2) {
+    animation-delay: 1s;
+  }
+
+  &:nth-child(3) {
+    animation-delay: 2s;
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .illustration {
+    width: 250px;
+    height: 250px;
+    margin-bottom: 2rem;
+  }
+}

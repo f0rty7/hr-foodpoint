@@ -1,4 +1,4 @@
-import { api, APIError } from "encore.dev/api";
+import { api, APIError, Header } from "encore.dev/api";
 import { getMongoCollection, User, UserRole } from "../shared/mongodb";
 import { ObjectId } from "mongodb";
 import { secret } from "encore.dev/config";
@@ -66,6 +66,13 @@ interface UpdateUserRequest {
   isActive?: boolean;
 }
 
+interface UpdateProfileRequest {
+  name?: string;
+  phone?: string;
+  currentPassword?: string;
+  newPassword?: string;
+}
+
 interface VerifyPasswordRequest {
   email: string;
   password: string;
@@ -87,7 +94,7 @@ function cleanUserData(user: any): Omit<User, 'passwordHash' | 'refreshTokens' |
 
 // Create a new user with password hashing
 export const createUser = api.raw(
-  { method: "POST", path: "/users", expose: true },
+  { method: "POST", path: "/api/users", expose: true },
   async (req, resp) => {
     try {
       // Rate limiting
@@ -213,7 +220,7 @@ export const createUser = api.raw(
 
 // Verify user password (used by auth service)
 export const verifyPassword = api(
-  { method: "POST", path: "/users/verify-password", expose: false }, // Internal API
+  { method: "POST", path: "/api/users/verify-password", expose: false }, // Internal API
   async ({ email, password }: VerifyPasswordRequest): Promise<VerifyPasswordResponse> => {
     if (!isValidEmail(email)) {
       throw APIError.invalidArgument("Invalid email format");
@@ -283,7 +290,7 @@ export const verifyPassword = api(
 
 // Get a user by ID
 export const getUser = api(
-  { method: "GET", path: "/users/:id", expose: true },
+  { method: "GET", path: "/api/users/:id", expose: true },
   async ({ id }: { id: string }): Promise<GetUserResponse> => {
     const users = await getMongoCollection(mongoConnectionString(), mongoCollectionName);
 
@@ -304,7 +311,7 @@ export const getUser = api(
 
 // Get a user by email
 export const getUserByEmail = api(
-  { method: "GET", path: "/users/by-email/:email", expose: true },
+  { method: "GET", path: "/api/users/by-email/:email", expose: true },
   async ({ email }: { email: string }): Promise<GetUserResponse> => {
     // Validate email format
     if (!isValidEmail(email)) {
@@ -323,10 +330,120 @@ export const getUserByEmail = api(
   }
 );
 
-// List all users
+// Get current user's profile (requires authentication)
+export const getProfile = api(
+  { method: "GET", path: "/api/users/profile", expose: true, auth: true },
+  async (): Promise<GetUserResponse> => {
+    // Get authentication data
+    const { getAuthData } = await import("~encore/auth");
+    const authData = getAuthData()!;
+
+    const users = await getMongoCollection(mongoConnectionString(), mongoCollectionName);
+    const user = await users.findOne({ _id: new ObjectId(authData.userID) });
+
+    if (!user) {
+      throw APIError.notFound("User not found");
+    }
+
+    return { user: cleanUserData(user) };
+  }
+);
+
+// Update current user's profile (requires authentication)
+export const updateProfile = api(
+  { method: "PUT", path: "/api/users/profile", expose: true },
+  async ({ name, phone, currentPassword, newPassword, authorization }: UpdateProfileRequest & { authorization: Header<"Authorization"> }): Promise<{ message: string }> => {
+    // Import the auth verification function
+    const { verifyAuthentication } = await import("../auth/auth");
+    const authData = await verifyAuthentication(authorization);
+
+    // Validate phone format if provided
+    if (phone && !isValidPhone(phone)) {
+      throw APIError.invalidArgument("Invalid phone format. Phone must be 10 digits.");
+    }
+
+    // Validate name if provided
+    if (name && name.trim().length === 0) {
+      throw APIError.invalidArgument("Name cannot be empty");
+    }
+
+    // Validate new password if provided
+    if (newPassword && !isValidPassword(newPassword)) {
+      throw APIError.invalidArgument(
+        "Password must be at least 8 characters long and contain at least one uppercase letter, " +
+        "one lowercase letter, one number, and one special character"
+      );
+    }
+
+    const users = await getMongoCollection(mongoConnectionString(), mongoCollectionName);
+
+    // Get current user
+    const currentUser = await users.findOne({ _id: new ObjectId(authData.userID) });
+    if (!currentUser) {
+      throw APIError.notFound("User not found");
+    }
+
+    // If changing password, verify current password
+    if (newPassword) {
+      if (!currentPassword) {
+        throw APIError.invalidArgument("Current password is required to set a new password");
+      }
+
+      const isCurrentPasswordValid = await bcrypt.compare(currentPassword, currentUser.passwordHash || '');
+      if (!isCurrentPasswordValid) {
+        throw APIError.unauthenticated("Current password is incorrect");
+      }
+    }
+
+    try {
+      const updateData: any = {
+        updatedAt: new Date()
+      };
+
+      if (name) updateData.name = name.trim();
+      if (phone) updateData.phone = phone.trim();
+
+      // Hash new password if provided
+      if (newPassword) {
+        updateData.passwordHash = await bcrypt.hash(newPassword, SALT_ROUNDS);
+        // Clear all refresh tokens when password changes
+        updateData.refreshTokens = [];
+      }
+
+      const result = await users.updateOne(
+        { _id: new ObjectId(authData.userID) },
+        { $set: updateData }
+      );
+
+      if (result.matchedCount === 0) {
+        throw APIError.notFound("User not found");
+      }
+
+      log.info("User profile updated successfully", { userId: authData.userID, updatedFields: Object.keys(updateData) });
+
+      return { message: "Profile updated successfully" };
+    } catch (error) {
+      if (error instanceof APIError) {
+        throw error;
+      }
+      log.error(error, "Error updating user profile", { userId: authData.userID });
+      throw APIError.internal("Failed to update profile");
+    }
+  }
+);
+
+// List all users (admin only)
 export const listUsers = api(
-  { method: "GET", path: "/users", expose: true },
-  async (): Promise<ListUsersResponse> => {
+  { method: "GET", path: "/api/users", expose: true },
+  async (params: { authorization: Header<"Authorization"> }): Promise<ListUsersResponse> => {
+    // Import the auth verification function - only admins can list all users
+    const { verifyAuthentication } = await import("../auth/auth");
+    const authData = await verifyAuthentication(params.authorization);
+
+    if (authData.role !== UserRole.ADMIN) {
+      throw APIError.permissionDenied("Only administrators can list all users");
+    }
+
     const users = await getMongoCollection(mongoConnectionString(), mongoCollectionName);
 
     const userList = await users.find({ isActive: { $ne: false } }).toArray();
@@ -337,10 +454,19 @@ export const listUsers = api(
   }
 );
 
-// Update a user
+// Update a user (requires authentication)
 export const updateUser = api(
-  { method: "PUT", path: "/users/:id", expose: true },
-  async ({ id, name, email, phone, currentPassword, newPassword, role, isActive }: UpdateUserRequest): Promise<{ message: string }> => {
+  { method: "PUT", path: "/api/users/:id", expose: true },
+  async ({ id, name, email, phone, currentPassword, newPassword, role, isActive, authorization }: UpdateUserRequest & { authorization: Header<"Authorization"> }): Promise<{ message: string }> => {
+    // Import the auth verification function
+    const { verifyAuthentication } = await import("../auth/auth");
+    const authData = await verifyAuthentication(authorization);
+
+    // Users can only update their own profile, unless they are admin
+    if (authData.userID !== id && authData.role !== UserRole.ADMIN) {
+      throw APIError.permissionDenied("You can only update your own profile");
+    }
+
     // Validate ObjectId format
     if (!ObjectId.isValid(id)) {
       throw APIError.invalidArgument("Invalid user ID format");
@@ -441,10 +567,18 @@ export const updateUser = api(
   }
 );
 
-// Delete/deactivate a user
+// Delete/deactivate a user (requires authentication)
 export const deleteUser = api(
-  { method: "DELETE", path: "/users/:id", expose: true },
-  async ({ id }: { id: string }): Promise<{ message: string }> => {
+  { method: "DELETE", path: "/api/users/:id", expose: true },
+  async ({ id, authorization }: { id: string; authorization: Header<"Authorization"> }): Promise<{ message: string }> => {
+    // Import the auth verification function - only admins can delete users
+    const { verifyAuthentication } = await import("../auth/auth");
+    const authData = await verifyAuthentication(authorization);
+
+    if (authData.role !== UserRole.ADMIN) {
+      throw APIError.permissionDenied("Only administrators can delete users");
+    }
+
     // Validate ObjectId format
     if (!ObjectId.isValid(id)) {
       throw APIError.invalidArgument("Invalid user ID format");
@@ -476,7 +610,7 @@ export const deleteUser = api(
 
 // Add refresh token to user
 export const addRefreshToken = api(
-  { method: "POST", path: "/users/:id/refresh-tokens", expose: false }, // Internal API
+  { method: "POST", path: "/api/users/:id/refresh-tokens", expose: false }, // Internal API
   async ({ id, token, expiresAt, deviceInfo, ipAddress }: {
     id: string;
     token: string;
@@ -516,7 +650,7 @@ export const addRefreshToken = api(
 
 // Remove refresh token from user
 export const removeRefreshToken = api(
-  { method: "DELETE", path: "/users/:id/refresh-tokens", expose: false }, // Internal API
+  { method: "DELETE", path: "/api/users/:id/refresh-tokens", expose: false }, // Internal API
   async ({ id, token }: { id: string; token: string }): Promise<{ message: string }> => {
     if (!ObjectId.isValid(id)) {
       throw APIError.invalidArgument("Invalid user ID format");

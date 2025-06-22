@@ -35,7 +35,7 @@ interface GetHomepageResponse {
 
 // Get all homepage data
 export const getHomepageData = api(
-    { method: "GET", path: "/homepage", expose: true },
+    { method: "GET", path: "/api/homepage", expose: true },
     async (): Promise<GetHomepageResponse> => {
         return {
             dishes: [
@@ -127,7 +127,7 @@ export const getHomepageData = api(
 
 // Get popular dishes only
 export const getPopularDishes = api(
-    { method: "GET", path: "/homepage/dishes", expose: true },
+    { method: "GET", path: "/api/homepage/dishes", expose: true },
     async (): Promise<{ dishes: Dish[] }> => {
         const homepageData = await getHomepageData();
         return { dishes: homepageData.dishes };
@@ -136,7 +136,7 @@ export const getPopularDishes = api(
 
 // Get job listings only
 export const getJobListings = api(
-    { method: "GET", path: "/homepage/jobs", expose: true },
+    { method: "GET", path: "/api/homepage/jobs", expose: true },
     async (): Promise<{ jobs: Job[] }> => {
         const homepageData = await getHomepageData();
         return { jobs: homepageData.jobs };
@@ -145,7 +145,7 @@ export const getJobListings = api(
 
 // Get about us information only
 export const getAboutUs = api(
-    { method: "GET", path: "/homepage/about", expose: true },
+    { method: "GET", path: "/api/homepage/about", expose: true },
     async (): Promise<{ aboutUs: AboutUs }> => {
         const homepageData = await getHomepageData();
         return { aboutUs: homepageData.aboutUs };
@@ -158,7 +158,7 @@ interface SearchDishesParams {
 }
 
 export const searchDishes = api(
-    { method: "GET", path: "/homepage/dishes/search" },
+    { method: "GET", path: "/api/homepage/dishes/search" },
     async (params: SearchDishesParams): Promise<{ dishes: Dish[] }> => {
         const homepageData = await getHomepageData();
         const filteredDishes = homepageData.dishes.filter(dish =>
@@ -175,7 +175,7 @@ interface SearchJobsParams {
 }
 
 export const searchJobs = api(
-    { method: "GET", path: "/homepage/jobs/search" },
+    { method: "GET", path: "/api/homepage/jobs/search" },
     async (params: SearchJobsParams): Promise<{ jobs: Job[] }> => {
         const homepageData = await getHomepageData();
         const filteredJobs = homepageData.jobs.filter(job =>
@@ -196,7 +196,7 @@ interface FeaturedContent {
 }
 
 export const getFeaturedContent = api(
-    { method: "GET", path: "/homepage/featured", expose: true },
+    { method: "GET", path: "/api/homepage/featured", expose: true },
     async (): Promise<{ featured: FeaturedContent }> => {
         return {
             featured: {

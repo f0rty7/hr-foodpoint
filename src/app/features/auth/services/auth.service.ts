@@ -1,5 +1,6 @@
 import { Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
+import { environment } from '../../../../environments/environment';
 
 export interface SigninRequest {
   email: string;
@@ -31,7 +32,7 @@ export interface AuthResponse {
   providedIn: 'root'
 })
 export class AuthService {
-  private readonly API_BASE_URL = 'http://0.0.0.0:4000';
+  private readonly API_BASE_URL = environment.apiUrl;
 
   // Reactive signals for auth state
   private currentUserSignal = signal<AuthUser | null>(null);
@@ -60,7 +61,7 @@ export class AuthService {
   private async verifyToken(token: string) {
     try {
       console.log('Verifying token on page refresh...');
-      const response = await fetch(`${this.API_BASE_URL}/auth/me`, {
+      const response = await fetch(`${this.API_BASE_URL}auth/me`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -94,7 +95,7 @@ export class AuthService {
     this.errorSignal.set(null);
 
     try {
-      const response = await fetch(`${this.API_BASE_URL}/auth/login`, {
+      const response = await fetch(`${this.API_BASE_URL}auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -135,7 +136,7 @@ export class AuthService {
     this.errorSignal.set(null);
 
     try {
-      const response = await fetch(`${this.API_BASE_URL}/auth/register`, {
+      const response = await fetch(`${this.API_BASE_URL}auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -173,7 +174,7 @@ export class AuthService {
       const token = localStorage.getItem('auth_token');
       if (token) {
         // Call logout endpoint
-        await fetch(`${this.API_BASE_URL}/auth/logout`, {
+        await fetch(`${this.API_BASE_URL}auth/logout`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`
