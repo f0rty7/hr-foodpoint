@@ -1,5 +1,4 @@
-import { Injectable, inject, signal, resource, computed, effect } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { Injectable, signal, resource, computed, effect } from '@angular/core';
 import { environment } from '../../../../environments/environment';
 
 export interface MenuItem {
@@ -67,7 +66,6 @@ export interface SearchFilters {
   providedIn: 'root'
 })
 export class FoodListingService {
-  private readonly http = inject(HttpClient);
   private readonly API_BASE_URL = environment.apiUrl; // Use the base API URL
 
   // Signals for reactive state management (Angular v20 features)

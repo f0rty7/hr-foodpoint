@@ -1,5 +1,4 @@
-import { Injectable, inject, signal, resource, computed, effect } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { Injectable, signal, resource, computed, effect } from '@angular/core';
 import { environment } from '../../../../environments/environment';
 
 export interface Dish {
@@ -14,7 +13,6 @@ export interface Dish {
   providedIn: 'root'
 })
 export class DishService {
-  private readonly http = inject(HttpClient);
   private readonly API_BASE_URL = environment.apiUrl + 'homepage'; // Use environment variable
 
   // Signal to trigger resource refresh

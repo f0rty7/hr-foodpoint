@@ -1,5 +1,4 @@
 import { Injectable, inject, signal, resource } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 
 export interface Job {
@@ -17,7 +16,6 @@ export interface Job {
   providedIn: 'root'
 })
 export class JobService {
-  private readonly http = inject(HttpClient);
   private readonly API_BASE_URL = environment.apiUrl + 'homepage'; // Use environment variable
 
   // Signal to trigger resource refresh
