@@ -1,7 +1,6 @@
 import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { HeaderComponent } from './components/header/header.component';
 import { HeroSectionComponent } from './components/hero-section/hero-section.component';
 import { PopularDishesComponent } from './components/popular-dishes/popular-dishes.component';
 import { JobListingsComponent } from './components/job-listings/job-listings.component';
@@ -13,7 +12,6 @@ import { AboutUsComponent } from './components/about-us/about-us.component';
   imports: [
     CommonModule,
     RouterModule,
-    HeaderComponent,
     HeroSectionComponent,
     PopularDishesComponent,
     JobListingsComponent,
@@ -21,8 +19,6 @@ import { AboutUsComponent } from './components/about-us/about-us.component';
   ],
   template: `
     <div class="homepage-container">
-      <app-header />
-
       <main class="main-content">
         <section class="content-sections">
           <app-hero-section />

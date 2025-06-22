@@ -6,7 +6,6 @@ import { FoodListingService } from './services/food-listing.service';
 import { FoodCardComponent } from './components/food-card/food-card.component';
 import { FilterSidebarComponent } from './components/filter-sidebar/filter-sidebar.component';
 import { HeroSectionComponent } from './components/hero-section/hero-section.component';
-import { HeaderComponent } from '../homepage/components/header/header.component';
 
 @Component({
   selector: 'app-food-listing',
@@ -17,11 +16,9 @@ import { HeaderComponent } from '../homepage/components/header/header.component'
     RouterModule,
     FoodCardComponent,
     FilterSidebarComponent,
-    HeroSectionComponent,
-    HeaderComponent
+    HeroSectionComponent
   ],
   template: `
-  <app-header />
     <!-- Hero Section -->
     <app-hero-section />
 

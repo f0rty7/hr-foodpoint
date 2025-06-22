@@ -3,14 +3,12 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { AuthService } from '../../auth/services/auth.service';
-import { HeaderComponent } from '../../homepage/components/header/header.component';
 
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule, HeaderComponent],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule],
   template: `
-    <app-header></app-header>
     <div class="profile-container">
       <div class="profile-header">
         <h1 class="profile-title">User Profile</h1>
