@@ -51,6 +51,18 @@ import { ContactService, ContactFormData } from '../../services/contact.service'
         </div>
 
         <div class="form-group">
+          <input
+            type="tel"
+            formControlName="phone"
+            placeholder="Phone Number (Optional)"
+            class="form-input"
+            [class.error]="contactForm.get('phone')?.invalid && contactForm.get('phone')?.touched">
+          @if (contactForm.get('phone')?.invalid && contactForm.get('phone')?.touched) {
+            <span class="error-message">Please enter a valid phone number</span>
+          }
+        </div>
+
+        <div class="form-group">
           <textarea
             formControlName="message"
             placeholder="Type something if you want..."
@@ -98,6 +110,7 @@ export class ContactFormComponent {
   contactForm: FormGroup = this.fb.group({
     name: ['', [Validators.required, Validators.minLength(2)]],
     email: ['', [Validators.required, Validators.email]],
+    phone: ['', [Validators.pattern(/^[\+]?[1-9][\d]{0,15}$/)]],
     message: ['', [Validators.required, Validators.minLength(10)]]
   });
 
@@ -114,7 +127,7 @@ export class ContactFormComponent {
         firstName: this.contactForm.value.name.split(' ')[0] || '',
         lastName: this.contactForm.value.name.split(' ').slice(1).join(' ') || '',
         email: this.contactForm.value.email,
-        phone: '',
+        phone: this.contactForm.value.phone || '',
         subject: 'general',
         message: this.contactForm.value.message,
         timestamp: new Date().toISOString(),
