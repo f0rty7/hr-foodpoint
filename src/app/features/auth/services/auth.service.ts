@@ -130,8 +130,15 @@ export class AuthService {
         this.shouldVerifyUser.set(true);
         this.userResource.reload();
 
-        // Navigate to home
-        this.router.navigate(['/home']);
+        // Check for redirect URL
+        const redirectUrl = localStorage.getItem('redirectUrl');
+        if (redirectUrl) {
+          localStorage.removeItem('redirectUrl');
+          this.router.navigateByUrl(redirectUrl);
+        } else {
+          // Default navigation
+          this.router.navigate(['/home']);
+        }
 
         return true;
       } else {
