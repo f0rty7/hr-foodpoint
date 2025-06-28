@@ -78,11 +78,16 @@ gsap.registerPlugin(ScrollTrigger);
       padding: 2rem;
       max-width: 1200px;
       margin: 0 auto;
+      display: grid;
+      grid-auto-rows: calc(100dvh - 69px);
+      place-content: center;
+      justify-content: center;
+      align-items: center;
     }
 
     .welcome-header {
       text-align: center;
-      margin-bottom: 3rem;
+      // margin-bottom: 3rem;
     }
 
     .welcome-header h1 {
@@ -100,7 +105,7 @@ gsap.registerPlugin(ScrollTrigger);
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
       gap: 1.5rem;
-      margin-bottom: 3rem;
+      // margin-bottom: 3rem;
     }
 
     .action-card {
@@ -137,7 +142,7 @@ gsap.registerPlugin(ScrollTrigger);
     .video-section {
       width: 100%;
       height: 60vh;
-      margin: 4rem 0;
+      // margin: 4rem 0;
       overflow: hidden;
       border-radius: 16px;
       box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
@@ -150,7 +155,7 @@ gsap.registerPlugin(ScrollTrigger);
     }
 
     .featured-section {
-      margin-top: 3rem;
+      // margin-top: 3rem;
     }
 
     .featured-section h2 {
