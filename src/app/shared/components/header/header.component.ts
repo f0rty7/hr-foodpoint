@@ -26,7 +26,7 @@ import { AuthService } from '../../../features/auth/services/auth.service';
               Services
             </button>
             <mat-menu #servicesMenu="matMenu">
-              <button mat-menu-item routerLink="/menu">Food Menu</button>
+              <button mat-menu-item routerLink="/food">Food Menu</button>
               <button mat-menu-item>Job Search</button>
             </mat-menu>
           </div>
@@ -91,7 +91,7 @@ import { AuthService } from '../../../features/auth/services/auth.service';
                 <mat-icon class="dropdown-icon" [class.rotated]="isServicesMenuOpen">expand_more</mat-icon>
               </span>
               <div class="mobile-submenu" [class.open]="isServicesMenuOpen">
-                <a routerLink="/menu" class="mobile-submenu-link" (click)="closeMobileMenu()">Food Menu</a>
+                <a routerLink="/food" class="mobile-submenu-link" (click)="closeMobileMenu()">Food Menu</a>
                 <a href="#" class="mobile-submenu-link" (click)="closeMobileMenu()">Job Search</a>
               </div>
             </div>

@@ -128,7 +128,9 @@ export class AuthService {
         // Store token and trigger user verification
         localStorage.setItem('auth_token', data.accessToken);
         this.shouldVerifyUser.set(true);
-        this.userResource.reload();
+
+        // Wait for user data to be loaded
+        await this.userResource.reload();
 
         // Check for redirect URL
         const redirectUrl = localStorage.getItem('redirectUrl');
@@ -136,8 +138,8 @@ export class AuthService {
           localStorage.removeItem('redirectUrl');
           this.router.navigateByUrl(redirectUrl);
         } else {
-          // Default navigation
-          this.router.navigate(['/home']);
+          // Default navigation to food home screen
+          this.router.navigate(['/food']);
         }
 
         return true;

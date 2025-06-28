@@ -16,7 +16,7 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
   {
-    path: 'menu',
+    path: 'food',
     loadChildren: () => import('./features/food-listing/food-listing.routes').then(m => m.foodListingRoutes),
     canActivate: [authGuard]
   },
