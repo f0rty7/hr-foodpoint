@@ -3,9 +3,11 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { FoodListingService } from './services/food-listing.service';
+import { FoodService } from './services/food.service';
 import { FoodCardComponent } from './components/food-card/food-card.component';
 import { FilterSidebarComponent } from './components/filter-sidebar/filter-sidebar.component';
 import { HeroSectionComponent } from './components/hero-section/hero-section.component';
+import { OrderDetailsComponent } from './components/food-home/components/order-details/order-details.component';
 
 @Component({
   selector: 'app-food-listing',
@@ -16,7 +18,8 @@ import { HeroSectionComponent } from './components/hero-section/hero-section.com
     RouterModule,
     FoodCardComponent,
     FilterSidebarComponent,
-    HeroSectionComponent
+    HeroSectionComponent,
+    OrderDetailsComponent
   ],
   template: `
     <!-- Hero Section -->
@@ -182,12 +185,17 @@ import { HeroSectionComponent } from './components/hero-section/hero-section.com
           </div>
         }
       </main>
+
+      <aside class="filter-sidebar">
+        <app-order-details [items]="cartService.cart()" />
+      </aside>
     </div>
   `,
   styleUrl: './food-listing.component.scss'
 })
 export class FoodListingComponent {
   readonly foodService = inject(FoodListingService);
+  readonly cartService = inject(FoodService);
 
   // Local component signals
   showSortDropdown = signal(false);

@@ -34,7 +34,7 @@ type DeliveryOption = 'Delivery' | 'Dine In' | 'Take Away';
             <img [src]="item.image" [alt]="item.name" class="item-image">
             <div class="item-info">
               <h3>{{ item.name }}</h3>
-              <p class="item-price">$ {{ item.price.toFixed(2) }}</p>
+              <p class="item-price">₹ {{ item.price.toFixed(2) }}</p>
             </div>
             <div class="item-quantity">×{{ item.quantity }}</div>
           </div>
@@ -44,15 +44,15 @@ type DeliveryOption = 'Delivery' | 'Dine In' | 'Take Away';
       <div class="order-summary">
         <div class="summary-row">
           <span>Items</span>
-          <span>$ {{ subtotal().toFixed(2) }}</span>
+          <span>₹ {{ subtotal().toFixed(2) }}</span>
         </div>
         <div class="summary-row">
           <span>Discounts</span>
-          <span class="discount">-$ {{ discount().toFixed(2) }}</span>
+          <span class="discount">-₹ {{ discount().toFixed(2) }}</span>
         </div>
         <div class="summary-row total">
           <span>Total</span>
-          <span>$ {{ total().toFixed(2) }}</span>
+          <span>₹ {{ total().toFixed(2) }}</span>
         </div>
       </div>
 
@@ -66,7 +66,13 @@ type DeliveryOption = 'Delivery' | 'Dine In' | 'Take Away';
       background: white;
       border-radius: 16px;
       padding: 1.5rem;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      width: 100%;
+      position: sticky;
+      top: 69px;
+      z-index: 1;
     }
 
     .order-header {
@@ -78,6 +84,12 @@ type DeliveryOption = 'Delivery' | 'Dine In' | 'Take Away';
       align-items: center;
       justify-content: space-between;
       margin-bottom: 1rem;
+      font-size: 24px;
+    font-weight: 700;
+    color: #2d3748;
+    margin: 0 0 24px 0;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 12px;
     }
 
     .order-info h2 {
@@ -110,11 +122,11 @@ type DeliveryOption = 'Delivery' | 'Dine In' | 'Take Away';
 
     .delivery-btn:hover {
       background: #fff6f2;
-      color: #ff5722;
+      color: #ed8936;
     }
 
     .delivery-btn.active {
-      background: #ff5722;
+      background: #ed8936;
       color: white;
     }
 
@@ -200,7 +212,7 @@ type DeliveryOption = 'Delivery' | 'Dine In' | 'Take Away';
     }
 
     .discount {
-      color: #ff5722;
+      color: #ed8936;
     }
 
     .total {
@@ -212,7 +224,7 @@ type DeliveryOption = 'Delivery' | 'Dine In' | 'Take Away';
 
     .checkout-btn {
       width: 100%;
-      background: #ff5722;
+      background: #ed8936;
       color: white;
       border: none;
       padding: 0.75rem;
@@ -242,7 +254,7 @@ type DeliveryOption = 'Delivery' | 'Dine In' | 'Take Away';
 export class OrderDetailsComponent {
   @Input({ required: true }) items: FoodItem[] = [];
 
-  deliveryOptions: DeliveryOption[] = ['Delivery', 'Dine In', 'Take Away'];
+  deliveryOptions: DeliveryOption[] = ['Dine In', 'Take Away'];
   selectedDeliveryOption = signal<DeliveryOption>('Delivery');
 
   subtotal = computed(() =>

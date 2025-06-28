@@ -158,7 +158,7 @@ gsap.registerPlugin(ScrollTrigger, ScrollSmoother);
 
     .video-section {
       width: 100%;
-      height: 60vh;
+      // height: 60vh;
       // margin: 4rem 0;
       overflow: hidden;
       border-radius: 16px;

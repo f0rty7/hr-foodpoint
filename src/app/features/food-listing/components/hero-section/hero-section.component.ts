@@ -22,7 +22,7 @@ import { CommonModule } from '@angular/common';
             <div class="main-image">
               <img src="/assets/images/food-hero-main-transparent.webp" alt="Delicious burger" loading="lazy" />
             </div>
-            <div class="side-images">
+            <!-- <div class="side-images">
               <div class="side-image">
                 <img src="https://picsum.photos/200/150?random=pizza" alt="Pizza" loading="lazy" />
               </div>
@@ -35,7 +35,7 @@ import { CommonModule } from '@angular/common';
               <div class="side-image">
                 <img src="https://picsum.photos/200/150?random=biryani" alt="Biryani" loading="lazy" />
               </div>
-            </div>
+            </div> -->
           </div>
         </div>
       </div>
