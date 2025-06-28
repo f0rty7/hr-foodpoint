@@ -4,82 +4,99 @@ import { RouterModule } from '@angular/router';
 import { AuthService } from '../../../auth/services/auth.service';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { ScrollSmoother } from 'gsap/ScrollSmoother';
 
-gsap.registerPlugin(ScrollTrigger);
+gsap.registerPlugin(ScrollTrigger, ScrollSmoother);
 
 @Component({
   selector: 'app-food-home',
   standalone: true,
   imports: [CommonModule, RouterModule],
   template: `
-    <div class="food-home-container">
-      <header class="welcome-header">
-        <h1>Welcome, {{ authService.currentUser()?.name || 'Guest' }}!</h1>
-        <p class="subtitle">Explore our delicious menu</p>
-      </header>
+    <div id="smooth-wrapper">
+      <div id="smooth-content">
+        <div class="food-home-container">
+          <header class="welcome-header">
+            <h1>Welcome, {{ authService.currentUser()?.name || 'Guest' }}!</h1>
+            <p class="subtitle">Explore our delicious menu</p>
+          </header>
 
-      <div class="quick-actions">
-        <div class="action-card" routerLink="/food/list">
-          <span class="icon">🍽️</span>
-          <h3>Browse Menu</h3>
-          <p>Explore our full menu selection</p>
-        </div>
+          <div class="quick-actions">
+            <div class="action-card" routerLink="/food/list">
+              <span class="icon">🍽️</span>
+              <h3>Browse Menu</h3>
+              <p>Explore our full menu selection</p>
+            </div>
 
-        <div class="action-card" routerLink="/food/list">
-          <span class="icon">⭐</span>
-          <h3>Popular Items</h3>
-          <p>See what others are loving</p>
-        </div>
+            <div class="action-card" routerLink="/food/list">
+              <span class="icon">⭐</span>
+              <h3>Popular Items</h3>
+              <p>See what others are loving</p>
+            </div>
 
-        <div class="action-card" routerLink="/food/list">
-          <span class="icon">🔥</span>
-          <h3>Today's Specials</h3>
-          <p>Check out our daily deals</p>
-        </div>
+            <div class="action-card" routerLink="/food/list">
+              <span class="icon">🔥</span>
+              <h3>Today's Specials</h3>
+              <p>Check out our daily deals</p>
+            </div>
 
-        <div class="action-card" routerLink="/food/list">
-          <span class="icon">🕒</span>
-          <h3>Recent Orders</h3>
-          <p>Quick reorder from history</p>
+            <div class="action-card" routerLink="/food/list">
+              <span class="icon">🕒</span>
+              <h3>Recent Orders</h3>
+              <p>Quick reorder from history</p>
+            </div>
+          </div>
+
+          <section class="video-section">
+            <video #foodVideo src="/assets/video/food.mp4" loop muted playsinline></video>
+          </section>
+
+          <section class="featured-section">
+            <h2>Featured Items</h2>
+            <div class="featured-items">
+              <div class="featured-item">
+                <div class="item-image">🍕</div>
+                <h3>Margherita Pizza</h3>
+                <p>Fresh basil, tomato sauce, and mozzarella</p>
+                <button class="order-button">Order Now</button>
+              </div>
+              <div class="featured-item">
+                <div class="item-image">🍔</div>
+                <h3>Classic Burger</h3>
+                <p>100% Angus beef with fresh toppings</p>
+                <button class="order-button">Order Now</button>
+              </div>
+              <div class="featured-item">
+                <div class="item-image">🥗</div>
+                <h3>Garden Salad</h3>
+                <p>Fresh mixed greens with house dressing</p>
+                <button class="order-button">Order Now</button>
+              </div>
+            </div>
+          </section>
         </div>
       </div>
-
-      <section class="video-section">
-        <video #foodVideo src="/assets/video/food.mp4" loop muted playsinline></video>
-      </section>
-
-      <section class="featured-section">
-        <h2>Featured Items</h2>
-        <div class="featured-items">
-          <div class="featured-item">
-            <div class="item-image">🍕</div>
-            <h3>Margherita Pizza</h3>
-            <p>Fresh basil, tomato sauce, and mozzarella</p>
-            <button class="order-button">Order Now</button>
-          </div>
-          <div class="featured-item">
-            <div class="item-image">🍔</div>
-            <h3>Classic Burger</h3>
-            <p>100% Angus beef with fresh toppings</p>
-            <button class="order-button">Order Now</button>
-          </div>
-          <div class="featured-item">
-            <div class="item-image">🥗</div>
-            <h3>Garden Salad</h3>
-            <p>Fresh mixed greens with house dressing</p>
-            <button class="order-button">Order Now</button>
-          </div>
-        </div>
-      </section>
     </div>
   `,
   styles: [`
+    #smooth-wrapper {
+      overflow: hidden;
+      position: fixed;
+      width: 100%;
+      height: calc(100vh - 70px);
+      top: 70px;
+      left: 0;
+    }
+    #smooth-content {
+      min-height: 100vh;
+    }
     .food-home-container {
       padding: 2rem;
-      max-width: 1200px;
+      // max-width: 1200px;
       margin: 0 auto;
       display: grid;
       grid-auto-rows: calc(100dvh - 69px);
+      grid-template-columns: 1fr;
       place-content: center;
       justify-content: center;
       align-items: center;
@@ -213,18 +230,31 @@ export class FoodHomeComponent implements AfterViewInit {
   @ViewChild('foodVideo') foodVideo!: ElementRef<HTMLVideoElement>;
 
   ngAfterViewInit() {
+    this.initScrollSmoother();
     this.initVideoScrollTrigger();
+  }
+
+  private initScrollSmoother() {
+    ScrollSmoother.create({
+      wrapper: "#smooth-wrapper",
+      content: "#smooth-content",
+      smooth: 1.5,
+      effects: true
+    });
   }
 
   private initVideoScrollTrigger() {
     const video = this.foodVideo.nativeElement;
 
+    // ensure video is muted to allow autoplay
+    video.muted = true;
+
     ScrollTrigger.create({
       trigger: '.video-section',
       start: 'top center',
       end: 'bottom center',
-      onEnter: () => video.play(),
-      onEnterBack: () => video.play(),
+      onEnter: () => { video.muted = true; video.play().catch(() => {}); },
+      onEnterBack: () => { video.muted = true; video.play().catch(() => {}); },
       onLeave: () => video.pause(),
       onLeaveBack: () => video.pause(),
       markers: false

@@ -30,29 +30,8 @@ import { HeroSectionComponent } from './components/hero-section/hero-section.com
 
       <!-- Main Content -->
       <main class="main-content">
-        <!-- Top Categories -->
-        <section class="top-categories">
-          <h2 class="section-title">Top Categories</h2>
-          <div class="categories-text">This is the top picked foods for you</div>
 
-          <div class="categories-pills">
-            <button
-              class="category-pill"
-              [class.active]="!foodService.selectedCategory()"
-              (click)="foodService.updateSelectedCategory(undefined)">
-              All
-            </button>
-            @for (category of foodService.categories(); track category.id) {
-              <button
-                class="category-pill {{ category.id }}"
-                [class.active]="foodService.selectedCategory() === category.id"
-                (click)="foodService.updateSelectedCategory(category.id); logCategory(category)">
-                {{ category.name }}
-              </button>
-            }
-          </div>
-        </section>
-
+      <div class="user-cta">
         <!-- Controls Bar -->
         <div class="controls-bar">
           <div class="search-section">
@@ -123,6 +102,44 @@ import { HeroSectionComponent } from './components/hero-section/hero-section.com
           }
         </div>
 
+        <!-- Top Categories -->
+        <section class="top-categories">
+          <h2 class="section-title">Categories</h2>
+          <div class="categories-text">
+                    <!-- Results Info -->
+        @if (!foodService.isLoading && !foodService.hasError) {
+          <div class="results-info">
+            <span class="results-count">
+              {{ foodService.filteredItems().length }} of {{ foodService.menuStats().totalItems }} dishes
+            </span>
+            @if (foodService.searchQuery()) {
+              <span class="search-info">
+                for "{{ foodService.searchQuery() }}"
+              </span>
+            }
+          </div>
+        }
+          </div>
+
+          <div class="categories-pills">
+            <button
+              class="category-pill"
+              [class.active]="!foodService.selectedCategory()"
+              (click)="foodService.updateSelectedCategory(undefined)">
+              All
+            </button>
+            @for (category of foodService.categories(); track category.id) {
+              <button
+                class="category-pill {{ category.id }}"
+                [class.active]="foodService.selectedCategory() === category.id"
+                (click)="foodService.updateSelectedCategory(category.id); logCategory(category)">
+                {{ category.name }}
+              </button>
+            }
+          </div>
+        </section>
+      </div>
+
         <!-- Loading State -->
         @if (foodService.isLoading) {
           <div class="loading-state">
@@ -143,19 +160,7 @@ import { HeroSectionComponent } from './components/hero-section/hero-section.com
           </div>
         }
 
-        <!-- Results Info -->
-        @if (!foodService.isLoading && !foodService.hasError) {
-          <div class="results-info">
-            <span class="results-count">
-              {{ foodService.filteredItems().length }} of {{ foodService.menuStats().totalItems }} dishes
-            </span>
-            @if (foodService.searchQuery()) {
-              <span class="search-info">
-                for "{{ foodService.searchQuery() }}"
-              </span>
-            }
-          </div>
-        }
+
 
         <!-- Food Grid -->
         @if (!foodService.isLoading && !foodService.hasError) {
