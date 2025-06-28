@@ -24,8 +24,8 @@ import { AboutUsComponent } from './components/about-us/about-us.component';
           <app-hero-section />
           <app-popular-dishes />
           <app-job-listings />
+          <app-about-us />
         </section>
-        <app-about-us />
       </main>
     </div>
   `,

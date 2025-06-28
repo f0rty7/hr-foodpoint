@@ -1,5 +1,11 @@
 import { api } from "encore.dev/api";
 import log from "encore.dev/log";
+import { getMongoCollection } from "../shared/mongodb";
+import { secret } from "encore.dev/config";
+
+// MongoDB connection string
+const mongoConnectionString = secret("MongoDBConnectionString");
+const mongoCollectionName = "contact_submissions";
 
 export interface ContactFormData {
   firstName: string;
@@ -57,21 +63,23 @@ export const submit = api(
       });
 
       // Generate a unique submission ID
-      const submissionId = `contact_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const submissionId = `contact_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 
-      // In a real application, you would:
-      // 1. Save to database
-      // 2. Send email notification
-      // 3. Trigger any necessary workflows
+      // Get MongoDB collection
+      const collection = await getMongoCollection(mongoConnectionString(), mongoCollectionName);
 
-      // For now, we'll just log and return success
+      // Store in MongoDB
+      await collection.insertOne({
+        _id: submissionId,
+        ...data,
+        createdAt: new Date(),
+        status: "new" // For tracking purposes
+      });
+
       log.info("Contact form processed successfully", {
         submissionId,
         email: data.email
       });
-
-      // Simulate some processing time
-      await new Promise(resolve => setTimeout(resolve, 1000));
 
       return {
         success: true,

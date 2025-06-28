@@ -17,7 +17,8 @@ import { HeaderComponent } from './shared/components/header/header.component';
     }
 
     main {
-      min-height: calc(100vh - 80px); /* Adjust based on header height */
+      // max-height: calc(100dvh - 70px); /* Adjust based on header height */
+      // overflow-y: auto;
     }
   `
 })

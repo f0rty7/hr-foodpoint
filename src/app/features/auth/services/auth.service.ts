@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, resource, computed } from '@angular/core';
 import { Router } from '@angular/router';
 import { environment } from '../../../../environments/environment';
 
@@ -34,61 +34,77 @@ export interface AuthResponse {
 export class AuthService {
   private readonly API_BASE_URL = environment.apiUrl;
 
-  // Reactive signals for auth state
-  private currentUserSignal = signal<AuthUser | null>(null);
+  // Signals for triggering auth operations
+  private shouldVerifyUser = signal(true);
   private isLoadingSignal = signal(false);
   private errorSignal = signal<string | null>(null);
 
-  // Public readonly signals
-  readonly currentUser = this.currentUserSignal.asReadonly();
-  readonly isLoading = this.isLoadingSignal.asReadonly();
-  readonly error = this.errorSignal.asReadonly();
-  readonly isAuthenticated = () => !!this.currentUserSignal();
+  // Resource for verifying authentication token and getting user data
+  readonly userResource = resource({
+    loader: async ({ abortSignal }) => {
+      const token = localStorage.getItem('auth_token');
 
-  constructor(private router: Router) {
-    // Check for existing token on service initialization
-    this.checkExistingAuth();
-  }
+      if (!token || !this.shouldVerifyUser()) {
+        return null;
+      }
 
-  private checkExistingAuth() {
-    const token = localStorage.getItem('auth_token');
-    if (token) {
-      // Verify token and get user info
-      this.verifyToken(token);
-    }
-  }
-
-  private async verifyToken(token: string) {
-    try {
-      console.log('Verifying token on page refresh...');
-      const response = await fetch(`${this.API_BASE_URL}auth/me`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
+      try {
+        if (environment.enableLogging) {
+          console.log('Verifying token with Resource API...');
         }
-      });
 
-      if (response.ok) {
+        const response = await fetch(`${this.API_BASE_URL}auth/me`, {
+          signal: abortSignal,
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          if (response.status === 401) {
+            // Token is invalid, remove it
+            localStorage.removeItem('auth_token');
+            this.shouldVerifyUser.set(false);
+            throw new Error('Authentication token expired or invalid');
+          }
+          throw new Error(`Authentication verification failed: ${response.status}`);
+        }
+
         const data = await response.json();
 
-        console.log('Token verification successful, user data:', data);
-        this.currentUserSignal.set({
+        if (environment.enableLogging) {
+          console.log('Token verification successful, user data:', data);
+        }
+
+        return {
           id: data.user.id,
           name: data.user.name,
           email: data.user.email,
           phone: data.user.phone
-        });
-      } else {
-        console.warn('Token verification failed with status:', response.status);
-        // Token is invalid, remove it
+        } as AuthUser;
+      } catch (error) {
+        if (error instanceof Error && error.name === 'AbortError') {
+          throw error;
+        }
+
+        console.warn('Token verification failed:', error);
         localStorage.removeItem('auth_token');
-        this.currentUserSignal.set(null);
+        this.shouldVerifyUser.set(false);
+        throw error;
       }
-    } catch (error) {
-      console.warn('Token verification failed with error:', error);
-      localStorage.removeItem('auth_token');
-      this.currentUserSignal.set(null);
     }
-  }
+  });
+
+
+
+  // Computed signals for reactive state
+  readonly currentUser = computed(() => this.userResource.value());
+  readonly isAuthenticated = computed(() => !!this.currentUser());
+  readonly isLoading = computed(() => this.userResource.isLoading() || this.isLoadingSignal());
+  readonly error = computed(() => this.userResource.error() || this.errorSignal());
+
+  constructor(private router: Router) {}
 
   async signin(credentials: SigninRequest): Promise<boolean> {
     this.isLoadingSignal.set(true);
@@ -109,11 +125,10 @@ export class AuthService {
       const data: AuthResponse = await response.json();
 
       if (response.ok) {
-        // Store token - use accessToken from backend response
+        // Store token and trigger user verification
         localStorage.setItem('auth_token', data.accessToken);
-
-        // Update user state
-        this.currentUserSignal.set(data.user);
+        this.shouldVerifyUser.set(true);
+        this.userResource.reload();
 
         // Navigate to home
         this.router.navigate(['/home']);
@@ -147,11 +162,10 @@ export class AuthService {
       const data: AuthResponse = await response.json();
 
       if (response.ok) {
-        // Store token - use accessToken from backend response
+        // Store token and trigger user verification
         localStorage.setItem('auth_token', data.accessToken);
-
-        // Update user state
-        this.currentUserSignal.set(data.user);
+        this.shouldVerifyUser.set(true);
+        this.userResource.reload();
 
         // Navigate to home
         this.router.navigate(['/home']);
@@ -171,13 +185,14 @@ export class AuthService {
 
   async signout(): Promise<void> {
     try {
-      const token = localStorage.getItem('auth_token');
+      const token = this.getAuthToken();
       if (token) {
         // Call logout endpoint
         await fetch(`${this.API_BASE_URL}auth/logout`, {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${token}`
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
           }
         });
       }
@@ -186,16 +201,31 @@ export class AuthService {
     } finally {
       // Clear local state regardless of API call success
       localStorage.removeItem('auth_token');
-      this.currentUserSignal.set(null);
+      this.shouldVerifyUser.set(false);
       this.router.navigate(['/auth/signin']);
     }
   }
 
-  clearError() {
+  clearError(): void {
     this.errorSignal.set(null);
   }
 
   getAuthToken(): string | null {
     return localStorage.getItem('auth_token');
+  }
+
+  // Method to refresh user data
+  refreshUser(): void {
+    this.shouldVerifyUser.set(true);
+    this.userResource.reload();
+  }
+
+  // Convenience getters for resource states
+  get hasError(): boolean {
+    return !!(this.userResource.error() || this.errorSignal());
+  }
+
+  get isUserLoading(): boolean {
+    return this.userResource.isLoading();
   }
 }

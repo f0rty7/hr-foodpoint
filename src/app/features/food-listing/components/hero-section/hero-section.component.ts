@@ -20,7 +20,7 @@ import { CommonModule } from '@angular/common';
         <div class="hero-images">
           <div class="image-grid">
             <div class="main-image">
-              <img src="/assets/images/food-hero-main.webp" alt="Delicious burger" loading="lazy" />
+              <img src="/assets/images/food-hero-main-transparent.webp" alt="Delicious burger" loading="lazy" />
             </div>
             <div class="side-images">
               <div class="side-image">

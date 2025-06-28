@@ -58,7 +58,7 @@ export interface ContactStats {
   providedIn: 'root'
 })
 export class ContactService {
-  private readonly API_BASE_URL = environment.apiUrl;
+  private readonly API_BASE_URL = environment.apiUrl + 'contact/';
 
   // Angular v20 signals for reactive state management
   private submissionInProgress = signal(false);
@@ -100,7 +100,7 @@ export class ContactService {
   readonly contactInfoResource = resource({
     loader: async ({ abortSignal }) => {
       try {
-        const response = await fetch(`${this.API_BASE_URL}contact/info`, {
+        const response = await fetch(`${this.API_BASE_URL}info`, {
           signal: abortSignal,
           headers: {
             'Content-Type': 'application/json'
@@ -192,7 +192,7 @@ export class ContactService {
     this.submissionInProgress.set(true);
 
     try {
-      const response = await fetch(`${this.API_BASE_URL}contact/submit`, {
+      const response = await fetch(`${this.API_BASE_URL}submit`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
