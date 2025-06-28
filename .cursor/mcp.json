@@ -5,6 +5,9 @@
         },
         "angular-docs": {
             "url": "https://gitmcp.io/angular/angular"
+        },
+        "gsap-docs": {
+            "url": "https://gitmcp.io/greensock/GSAP"
         }
     }
 }

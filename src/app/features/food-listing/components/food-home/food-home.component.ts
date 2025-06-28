@@ -1,7 +1,11 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, AfterViewInit, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AuthService } from '../../../auth/services/auth.service';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+gsap.registerPlugin(ScrollTrigger);
 
 @Component({
   selector: 'app-food-home',
@@ -40,10 +44,13 @@ import { AuthService } from '../../../auth/services/auth.service';
         </div>
       </div>
 
+      <section class="video-section">
+        <video #foodVideo src="/assets/video/food.mp4" loop muted playsinline></video>
+      </section>
+
       <section class="featured-section">
         <h2>Featured Items</h2>
         <div class="featured-items">
-          <!-- Add featured items here -->
           <div class="featured-item">
             <div class="item-image">🍕</div>
             <h3>Margherita Pizza</h3>
@@ -127,6 +134,21 @@ import { AuthService } from '../../../auth/services/auth.service';
       font-size: 0.9rem;
     }
 
+    .video-section {
+      width: 100%;
+      height: 60vh;
+      margin: 4rem 0;
+      overflow: hidden;
+      border-radius: 16px;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    }
+
+    .video-section video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
     .featured-section {
       margin-top: 3rem;
     }
@@ -181,6 +203,26 @@ import { AuthService } from '../../../auth/services/auth.service';
     }
   `]
 })
-export class FoodHomeComponent {
+export class FoodHomeComponent implements AfterViewInit {
   authService = inject(AuthService);
+  @ViewChild('foodVideo') foodVideo!: ElementRef<HTMLVideoElement>;
+
+  ngAfterViewInit() {
+    this.initVideoScrollTrigger();
+  }
+
+  private initVideoScrollTrigger() {
+    const video = this.foodVideo.nativeElement;
+
+    ScrollTrigger.create({
+      trigger: '.video-section',
+      start: 'top center',
+      end: 'bottom center',
+      onEnter: () => video.play(),
+      onEnterBack: () => video.play(),
+      onLeave: () => video.pause(),
+      onLeaveBack: () => video.pause(),
+      markers: false
+    });
+  }
 }
