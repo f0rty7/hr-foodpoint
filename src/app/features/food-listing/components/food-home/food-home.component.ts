@@ -263,7 +263,7 @@ export class FoodHomeComponent implements AfterViewInit {
       autoAlpha: 0,
       ease: 'back.out',
 
-      // duration: 0.6,
+      duration: 0.3,
       // ease: 'power2.out',
       stagger: {
         amount: 0.05,
