@@ -1,9 +1,9 @@
 import { Routes } from '@angular/router';
 
-export const foodListingRoutes: Routes = [
+export const foodRoutes: Routes = [
   {
     path: '',
-    loadComponent: () => import('./components/food-home/food-home.component').then(m => m.FoodHomeComponent)
+    loadComponent: () => import('./food-home.component').then(m => m.FoodHomeComponent)
   },
   {
     path: 'list',

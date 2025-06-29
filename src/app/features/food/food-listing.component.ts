@@ -6,7 +6,7 @@ import { FoodListingService } from './services/food-listing.service';
 import { FoodService } from './services/food.service';
 import { FoodCardComponent } from './components/food-card/food-card.component';
 import { FilterSidebarComponent } from './components/filter-sidebar/filter-sidebar.component';
-import { OrderDetailsComponent } from './components/food-home/components/order-details/order-details.component';
+import { OrderDetailsComponent } from './components/order-details/order-details.component';
 import { AuthService } from '../auth/services/auth.service';
 
 @Component({

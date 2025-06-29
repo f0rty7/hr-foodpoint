@@ -1,6 +1,6 @@
 import { Component, Input, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FoodItem } from '../../../../services/food.service';
+import { FoodItem } from '../../services/food.service';
 
 type DeliveryOption = 'Delivery' | 'Dine In' | 'Take Away';
 
@@ -85,11 +85,11 @@ type DeliveryOption = 'Delivery' | 'Dine In' | 'Take Away';
       justify-content: space-between;
       margin-bottom: 1rem;
       font-size: 24px;
-    font-weight: 700;
-    color: #2d3748;
-    margin: 0 0 24px 0;
-    border-bottom: 2px solid #e2e8f0;
-    padding-bottom: 12px;
+      font-weight: 700;
+      color: #2d3748;
+      margin: 0 0 24px 0;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 12px;
     }
 
     .order-info h2 {

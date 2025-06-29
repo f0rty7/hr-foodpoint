@@ -1,12 +1,12 @@
 import { Component, inject, AfterViewInit, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { AuthService } from '../../../auth/services/auth.service';
+import { AuthService } from '../auth/services/auth.service';
 import { gsap } from 'gsap';
 import { SplitText } from 'gsap/SplitText';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ScrollSmoother } from 'gsap/ScrollSmoother';
-import { HeroSectionComponent } from '../hero-section/hero-section.component';
+import { HeroSectionComponent } from './components/hero-section/hero-section.component';
 
 gsap.registerPlugin(ScrollTrigger, ScrollSmoother, SplitText);
 

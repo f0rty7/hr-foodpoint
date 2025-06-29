@@ -17,7 +17,7 @@ export const routes: Routes = [
   },
   {
     path: 'food',
-    loadChildren: () => import('./features/food-listing/food-listing.routes').then(m => m.foodListingRoutes),
+    loadChildren: () => import('./features/food/food.routes').then(m => m.foodRoutes),
     canActivate: [authGuard]
   },
   {
