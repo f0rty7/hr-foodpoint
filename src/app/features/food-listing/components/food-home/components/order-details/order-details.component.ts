@@ -65,7 +65,7 @@ type DeliveryOption = 'Delivery' | 'Dine In' | 'Take Away';
     .order-details {
       background: white;
       border-radius: 16px;
-      padding: 1.5rem;
+      padding: 1rem;
       background: white;
       border-radius: 16px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);

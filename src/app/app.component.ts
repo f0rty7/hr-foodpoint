@@ -6,8 +6,8 @@ import { HeaderComponent } from './shared/components/header/header.component';
   selector: 'app-root',
   imports: [RouterOutlet, HeaderComponent],
   template: `
+    <app-header />
     <main>
-      <app-header />
       <router-outlet />
     </main>
   `,
