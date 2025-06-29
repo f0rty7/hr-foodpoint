@@ -1,10 +1,11 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-hero-section',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterModule],
   template: `
     <section class="hero-section">
       <div class="hero-content">
@@ -14,13 +15,13 @@ import { CommonModule } from '@angular/common';
             Quickly to Your Door
           </h1>
           <p class="hero-subtitle">Ready to Enjoy in No Time!</p>
-          <button class="cta-button">Order Now</button>
+          <a class="cta-button" routerLink="/food/list">Order Now</a>
         </div>
 
         <div class="hero-images">
           <div class="image-grid">
             <div class="main-image">
-              <img src="/assets/images/food-hero-main-transparent.webp" alt="Delicious burger" loading="lazy" />
+              <img src="/assets/images/food-hero-main-transparent.webp" alt="Delicious burger" />
             </div>
             <!-- <div class="side-images">
               <div class="side-image">

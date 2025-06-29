@@ -3,15 +3,17 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AuthService } from '../../../auth/services/auth.service';
 import { gsap } from 'gsap';
+import { SplitText } from 'gsap/SplitText';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ScrollSmoother } from 'gsap/ScrollSmoother';
+import { HeroSectionComponent } from '../hero-section/hero-section.component';
 
-gsap.registerPlugin(ScrollTrigger, ScrollSmoother);
+gsap.registerPlugin(ScrollTrigger, ScrollSmoother, SplitText);
 
 @Component({
   selector: 'app-food-home',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, HeroSectionComponent],
   template: `
     <div id="smooth-wrapper">
       <div id="smooth-content">
@@ -21,7 +23,10 @@ gsap.registerPlugin(ScrollTrigger, ScrollSmoother);
             <p class="subtitle">Explore our delicious menu</p>
           </header>
 
-          <div class="quick-actions">
+          <!-- Hero Section -->
+          <app-hero-section />
+
+          <!-- <div class="quick-actions">
             <div class="action-card" routerLink="/food/list">
               <span class="icon">🍽️</span>
               <h3>Browse Menu</h3>
@@ -45,13 +50,13 @@ gsap.registerPlugin(ScrollTrigger, ScrollSmoother);
               <h3>Recent Orders</h3>
               <p>Quick reorder from history</p>
             </div>
-          </div>
+          </div> -->
 
           <section class="video-section">
             <video #foodVideo src="/assets/video/food.mp4" loop muted playsinline></video>
           </section>
 
-          <section class="featured-section">
+          <!-- <section class="featured-section">
             <h2>Featured Items</h2>
             <div class="featured-items">
               <div class="featured-item">
@@ -73,7 +78,7 @@ gsap.registerPlugin(ScrollTrigger, ScrollSmoother);
                 <button class="order-button">Order Now</button>
               </div>
             </div>
-          </section>
+          </section> -->
         </div>
       </div>
     </div>
@@ -95,11 +100,13 @@ gsap.registerPlugin(ScrollTrigger, ScrollSmoother);
       // max-width: 1200px;
       margin: 0 auto;
       display: grid;
-      grid-auto-rows: calc(100dvh - 69px);
+      // grid-auto-rows: calc(100dvh - 69px);
+      grid-auto-rows: minmax(calc(100dvh - 69px), 1fr) minmax(calc(100dvh - 69px), 1fr);
       grid-template-columns: 1fr;
       place-content: center;
       justify-content: center;
       align-items: center;
+      background: linear-gradient(135deg, #fef5e7 0%, #fed7aa 100%);
     }
 
     .welcome-header {

@@ -22,8 +22,8 @@ import { OrderDetailsComponent } from './components/food-home/components/order-d
     OrderDetailsComponent
   ],
   template: `
-    <!-- Hero Section -->
-    <app-hero-section />
+    <!-- Hero Section
+    <app-hero-section /> -->
 
     <div class="food-listing-container">
       <!-- Filter Sidebar -->
