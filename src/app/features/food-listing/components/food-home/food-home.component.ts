@@ -19,7 +19,7 @@ gsap.registerPlugin(ScrollTrigger, ScrollSmoother, SplitText);
       <div id="smooth-content">
         <div class="food-home-container">
           <header class="welcome-header">
-            <h1>Welcome, {{ authService.currentUser()?.name || 'Guest' }}!</h1>
+            <h1 #welcomeText>Welcome, {{ authService.currentUser()?.name || 'Guest' }}!</h1>
             <p class="subtitle">Explore our delicious menu</p>
           </header>
 
@@ -234,10 +234,12 @@ gsap.registerPlugin(ScrollTrigger, ScrollSmoother, SplitText);
 })
 export class FoodHomeComponent implements AfterViewInit {
   authService = inject(AuthService);
+  @ViewChild('welcomeText', { static: true }) welcomeText!: ElementRef<HTMLHeadingElement>;
   @ViewChild('foodVideo') foodVideo!: ElementRef<HTMLVideoElement>;
 
   ngAfterViewInit() {
     this.initScrollSmoother();
+    this.initSplitTextAnimation();
     this.initVideoScrollTrigger();
   }
 
@@ -247,6 +249,26 @@ export class FoodHomeComponent implements AfterViewInit {
       content: "#smooth-content",
       smooth: 1.5,
       effects: true
+    });
+  }
+
+  private initSplitTextAnimation() {
+    const element = this.welcomeText.nativeElement;
+    const split = new SplitText(element, {
+      type: 'words' ,
+      // autoSplit: true,
+      });
+    gsap.from(split.words, {
+      yPercent: "random([-100, 100])",
+      autoAlpha: 0,
+      ease: 'back.out',
+
+      // duration: 0.6,
+      // ease: 'power2.out',
+      stagger: {
+        amount: 0.05,
+        from: 'random'
+      },
     });
   }
 

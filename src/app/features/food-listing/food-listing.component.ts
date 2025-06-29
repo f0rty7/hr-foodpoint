@@ -6,8 +6,8 @@ import { FoodListingService } from './services/food-listing.service';
 import { FoodService } from './services/food.service';
 import { FoodCardComponent } from './components/food-card/food-card.component';
 import { FilterSidebarComponent } from './components/filter-sidebar/filter-sidebar.component';
-import { HeroSectionComponent } from './components/hero-section/hero-section.component';
 import { OrderDetailsComponent } from './components/food-home/components/order-details/order-details.component';
+import { AuthService } from '../auth/services/auth.service';
 
 @Component({
   selector: 'app-food-listing',
@@ -18,7 +18,6 @@ import { OrderDetailsComponent } from './components/food-home/components/order-d
     RouterModule,
     FoodCardComponent,
     FilterSidebarComponent,
-    HeroSectionComponent,
     OrderDetailsComponent
   ],
   template: `
@@ -109,22 +108,28 @@ import { OrderDetailsComponent } from './components/food-home/components/order-d
         <section class="top-categories">
           <h2 class="section-title">Categories</h2>
           <div class="categories-text">
-                    <!-- Results Info -->
-        @if (!foodService.isLoading && !foodService.hasError) {
-          <div class="results-info">
-            <span class="results-count">
-              {{ foodService.filteredItems().length }} of {{ foodService.menuStats().totalItems }} dishes
-            </span>
-            @if (foodService.searchQuery()) {
-              <span class="search-info">
-                for "{{ foodService.searchQuery() }}"
-              </span>
+            <!-- Results Info -->
+            @if (!foodService.isLoading && !foodService.hasError) {
+              <div class="results-info">
+                <span class="results-count">
+                  {{ foodService.filteredItems().length }} of {{ foodService.menuStats().totalItems }} dishes
+                </span>
+                @if (foodService.searchQuery()) {
+                  <span class="search-info">
+                    for "{{ foodService.searchQuery() }}"
+                  </span>
+                }
+              </div>
             }
-          </div>
-        }
           </div>
 
           <div class="categories-pills">
+            @if(isAdmin()) {
+                <button class="category-pill-add">
+                  Add Category
+                </button>
+              }
+
             <button
               class="category-pill"
               [class.active]="!foodService.selectedCategory()"
@@ -139,6 +144,7 @@ import { OrderDetailsComponent } from './components/food-home/components/order-d
                 {{ category.name }}
               </button>
             }
+
           </div>
         </section>
       </div>
@@ -162,8 +168,6 @@ import { OrderDetailsComponent } from './components/food-home/components/order-d
             </button>
           </div>
         }
-
-
 
         <!-- Food Grid -->
         @if (!foodService.isLoading && !foodService.hasError) {
@@ -196,10 +200,17 @@ import { OrderDetailsComponent } from './components/food-home/components/order-d
 export class FoodListingComponent {
   readonly foodService = inject(FoodListingService);
   readonly cartService = inject(FoodService);
+  readonly authService = inject(AuthService);
+
+  constructor() {
+    console.log(this.authService.currentUser())
+    this.isAdmin.set(this.authService.isAdmin())
+  }
 
   // Local component signals
   showSortDropdown = signal(false);
   showFilterDropdown = signal(false);
+  isAdmin = signal(false)
 
   onSearchInput(event: Event): void {
     const target = event.target as HTMLInputElement;

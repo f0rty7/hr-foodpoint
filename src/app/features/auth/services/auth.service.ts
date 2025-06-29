@@ -20,6 +20,7 @@ export interface AuthUser {
   name: string;
   email: string;
   phone: string;
+  role: string;
 }
 
 export interface AuthResponse {
@@ -81,7 +82,8 @@ export class AuthService {
           id: data.user.id,
           name: data.user.name,
           email: data.user.email,
-          phone: data.user.phone
+          phone: data.user.phone,
+          role: data.user.role
         } as AuthUser;
       } catch (error) {
         if (error instanceof Error && error.name === 'AbortError') {
@@ -100,6 +102,7 @@ export class AuthService {
 
   // Computed signals for reactive state
   readonly currentUser = computed(() => this.userResource.value());
+  readonly isAdmin = computed(() => this.currentUser()?.role === 'admin')
   readonly isAuthenticated = computed(() => !!this.currentUser());
   readonly isLoading = computed(() => this.userResource.isLoading() || this.isLoadingSignal());
   readonly error = computed(() => this.userResource.error() || this.errorSignal());
