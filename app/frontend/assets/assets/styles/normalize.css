@@ -58,4 +58,24 @@ button {
 }
 
 html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+body {
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+  background: #f8fafc;
+  scrollbar-gutter: stable;
+}
+
+body::-webkit-scrollbar {
+  width: 4px;
+}
+
+/* body::-webkit-scrollbar-track {
+  background: #f8fafc;
+} */
+
+body::-webkit-scrollbar-thumb {
+  background: linear-gradient(
+    135deg,
+    #fef5e7 0%,
+    #fed7aa 100%)
+}
