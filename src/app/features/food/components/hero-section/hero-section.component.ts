@@ -15,7 +15,7 @@ import { RouterModule } from '@angular/router';
             Quickly to Your Door
           </h1>
           <p class="hero-subtitle">Ready to Enjoy in No Time!</p>
-          <a class="cta-button" routerLink="/food/list">Order Now</a>
+          <a class="cta-button" routerLink="/food/order">Order Now</a>
         </div>
 
         <div class="hero-images">

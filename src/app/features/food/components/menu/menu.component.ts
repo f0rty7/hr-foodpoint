@@ -2,15 +2,15 @@ import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { FoodListingService } from './services/food-listing.service';
-import { FoodService } from './services/food.service';
-import { FoodCardComponent } from './components/food-card/food-card.component';
-import { FilterSidebarComponent } from './components/filter-sidebar/filter-sidebar.component';
-import { OrderDetailsComponent } from './components/order-details/order-details.component';
-import { AuthService } from '../auth/services/auth.service';
+import { FoodListingService } from '../../services/food-listing.service';
+import { FoodService } from '../../services/food.service';
+import { FoodCardComponent } from '../food-card/food-card.component';
+import { FilterSidebarComponent } from '../filter-sidebar/filter-sidebar.component';
+import { OrderDetailsComponent } from '../order-details/order-details.component';
+import { AuthService } from '../../../auth/services/auth.service';
 
 @Component({
-  selector: 'app-food-listing',
+  selector: 'app-food-menu',
   standalone: true,
   imports: [
     CommonModule,
@@ -21,9 +21,6 @@ import { AuthService } from '../auth/services/auth.service';
     OrderDetailsComponent
   ],
   template: `
-    <!-- Hero Section
-    <app-hero-section /> -->
-
     <div class="food-listing-container">
       <!-- Filter Sidebar -->
       <aside class="filter-sidebar">
@@ -195,9 +192,10 @@ import { AuthService } from '../auth/services/auth.service';
       </aside>
     </div>
   `,
-  styleUrl: './food-listing.component.scss'
+  styleUrl: './menu.component.scss'
 })
-export class FoodListingComponent {
+
+export class MenuListingComponent {
   readonly foodService = inject(FoodListingService);
   readonly cartService = inject(FoodService);
   readonly authService = inject(AuthService);

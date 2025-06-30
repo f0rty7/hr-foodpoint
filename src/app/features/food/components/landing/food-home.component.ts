@@ -1,12 +1,12 @@
 import { Component, inject, AfterViewInit, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { AuthService } from '../auth/services/auth.service';
+import { AuthService } from '../../../auth/services/auth.service';
 import { gsap } from 'gsap';
 import { SplitText } from 'gsap/SplitText';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ScrollSmoother } from 'gsap/ScrollSmoother';
-import { HeroSectionComponent } from './components/hero-section/hero-section.component';
+import { HeroSectionComponent } from '../hero-section/hero-section.component';
 
 gsap.registerPlugin(ScrollTrigger, ScrollSmoother, SplitText);
 
@@ -26,59 +26,10 @@ gsap.registerPlugin(ScrollTrigger, ScrollSmoother, SplitText);
           <!-- Hero Section -->
           <app-hero-section />
 
-          <!-- <div class="quick-actions">
-            <div class="action-card" routerLink="/food/list">
-              <span class="icon">🍽️</span>
-              <h3>Browse Menu</h3>
-              <p>Explore our full menu selection</p>
-            </div>
-
-            <div class="action-card" routerLink="/food/list">
-              <span class="icon">⭐</span>
-              <h3>Popular Items</h3>
-              <p>See what others are loving</p>
-            </div>
-
-            <div class="action-card" routerLink="/food/list">
-              <span class="icon">🔥</span>
-              <h3>Today's Specials</h3>
-              <p>Check out our daily deals</p>
-            </div>
-
-            <div class="action-card" routerLink="/food/list">
-              <span class="icon">🕒</span>
-              <h3>Recent Orders</h3>
-              <p>Quick reorder from history</p>
-            </div>
-          </div> -->
 
           <section class="video-section">
             <video #foodVideo src="/assets/video/food.mp4" loop muted playsinline></video>
           </section>
-
-          <!-- <section class="featured-section">
-            <h2>Featured Items</h2>
-            <div class="featured-items">
-              <div class="featured-item">
-                <div class="item-image">🍕</div>
-                <h3>Margherita Pizza</h3>
-                <p>Fresh basil, tomato sauce, and mozzarella</p>
-                <button class="order-button">Order Now</button>
-              </div>
-              <div class="featured-item">
-                <div class="item-image">🍔</div>
-                <h3>Classic Burger</h3>
-                <p>100% Angus beef with fresh toppings</p>
-                <button class="order-button">Order Now</button>
-              </div>
-              <div class="featured-item">
-                <div class="item-image">🥗</div>
-                <h3>Garden Salad</h3>
-                <p>Fresh mixed greens with house dressing</p>
-                <button class="order-button">Order Now</button>
-              </div>
-            </div>
-          </section> -->
         </div>
       </div>
     </div>
