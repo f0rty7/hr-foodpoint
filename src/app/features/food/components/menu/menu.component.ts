@@ -103,10 +103,10 @@ import { AuthService } from '../../../auth/services/auth.service';
 
         <!-- Top Categories -->
         <section class="top-categories">
-          <h2 class="section-title">Categories</h2>
-          <div class="categories-text">
+          <!-- <h2 class="section-title">Categories</h2> -->
+          <!-- <div class="categories-text"> -->
             <!-- Results Info -->
-            @if (!foodService.isLoading && !foodService.hasError) {
+            <!-- @if (!foodService.isLoading && !foodService.hasError) {
               <div class="results-info">
                 <span class="results-count">
                   {{ foodService.filteredItems().length }} of {{ foodService.menuStats().totalItems }} dishes
@@ -117,11 +117,11 @@ import { AuthService } from '../../../auth/services/auth.service';
                   </span>
                 }
               </div>
-            }
-          </div>
+            } -->
+          <!-- </div> -->
 
           <div class="categories-pills">
-            @if(isAdmin()) {
+            @if(authService.isAdmin()) {
                 <button class="category-pill-add">
                   Add Category
                 </button>
@@ -169,6 +169,13 @@ import { AuthService } from '../../../auth/services/auth.service';
         <!-- Food Grid -->
         @if (!foodService.isLoading && !foodService.hasError) {
           <div class="food-grid">
+            @if(authService.isAdmin() && foodService.selectedCategory()) {
+              <div class="add-food-button">
+                <button>
+                  Add Food
+                </button>
+              </div>
+            }
             @for (item of foodService.filteredItems(); track item.id || item._id) {
               <app-food-card [menuItem]="item" />
             } @empty {
@@ -202,13 +209,13 @@ export class MenuListingComponent {
 
   constructor() {
     console.log(this.authService.currentUser())
-    this.isAdmin.set(this.authService.isAdmin())
+    // this.isAdmin.set(this.authService.isAdmin())
   }
 
   // Local component signals
   showSortDropdown = signal(false);
   showFilterDropdown = signal(false);
-  isAdmin = signal(false)
+  // isAdmin = signal(false)
 
   onSearchInput(event: Event): void {
     const target = event.target as HTMLInputElement;

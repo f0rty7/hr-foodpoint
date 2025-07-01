@@ -407,3 +407,137 @@ export const fixCategoryMapping = api(
     }
   }
 );
+
+// Check database item status to debug missing items
+export const checkItemStatus = api(
+  {
+    method: "GET",
+    path: "/api/menu/check-item-status",
+    auth: true,
+    expose: true
+  },
+  async (): Promise<{
+    totalItems: number;
+    activeItems: number;
+    inactiveItems: number;
+    missingActiveField: number;
+    statusBreakdown: any[];
+  }> => {
+    const authData = getAuthData();
+    if (!authData) {
+      throw new Error("Authentication required");
+    }
+
+    try {
+      const restaurantId = "default";
+      const menuItemsCollection = await foodRepo['getMenuItemsCollection']();
+
+      // Get all items regardless of status
+      const allItems = await menuItemsCollection.find({ restaurantId }).toArray();
+
+      // Analyze item status
+      let activeItems = 0;
+      let inactiveItems = 0;
+      let missingActiveField = 0;
+      const statusBreakdown: any[] = [];
+
+      for (const item of allItems) {
+        const status = {
+          name: item.name,
+          isActive: item.isActive,
+          isInStock: item.isInStock,
+          enabled: item.enabled,
+          active: item.active
+        };
+        statusBreakdown.push(status);
+
+        if (item.isActive === true) {
+          activeItems++;
+        } else if (item.isActive === false) {
+          inactiveItems++;
+        } else {
+          missingActiveField++;
+        }
+      }
+
+      log.info("Item status check completed", {
+        userId: authData.userID,
+        totalItems: allItems.length,
+        activeItems,
+        inactiveItems,
+        missingActiveField
+      });
+
+      return {
+        totalItems: allItems.length,
+        activeItems,
+        inactiveItems,
+        missingActiveField,
+        statusBreakdown
+      };
+    } catch (error) {
+      log.error(error, "Failed to check item status", { userId: authData.userID });
+      throw error;
+    }
+  }
+);
+
+// Activate all inactive items
+export const activateAllItems = api(
+  {
+    method: "POST",
+    path: "/api/menu/activate-all-items",
+    auth: true,
+    expose: true
+  },
+  async (): Promise<{ message: string; itemsActivated: number; itemNames: string[] }> => {
+    const authData = getAuthData();
+    if (!authData) {
+      throw new Error("Authentication required");
+    }
+
+    log.info("Activating all inactive items", {
+      userId: authData.userID,
+      email: authData.email
+    });
+
+    try {
+      const restaurantId = "default";
+      const menuItemsCollection = await foodRepo['getMenuItemsCollection']();
+
+      // Find all inactive items
+      const inactiveItems = await menuItemsCollection.find({
+        restaurantId,
+        isActive: false
+      }).toArray();
+
+      const itemNames = inactiveItems.map(item => item.name);
+
+      // Activate all inactive items
+      const result = await menuItemsCollection.updateMany(
+        { restaurantId, isActive: false },
+        {
+          $set: {
+            isActive: true,
+            updatedAt: new Date()
+          }
+        }
+      );
+
+      log.info("All items activated", {
+        userId: authData.userID,
+        itemsActivated: result.modifiedCount,
+        itemNames
+      });
+
+      return {
+        message: `Successfully activated ${result.modifiedCount} items`,
+        itemsActivated: result.modifiedCount,
+        itemNames
+      };
+    } catch (error) {
+      log.error(error, "Failed to activate items", { userId: authData.userID });
+      throw error;
+    }
+  }
+);
