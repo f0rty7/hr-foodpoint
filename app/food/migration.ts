@@ -42,6 +42,16 @@ export const migrateStaticDataToMongoDB = api(
       // First, create indexes
       await foodRepo.createIndexes();
 
+      // Get existing categories from MongoDB to create mapping
+      const categoriesCollection = await foodRepo['getCategoriesCollection']();
+      const existingCategories = await categoriesCollection.find({ restaurantId }).toArray();
+
+      // Create mapping from category name to MongoDB category ID
+      const categoryNameToIdMap = new Map<string, string>();
+      existingCategories.forEach(cat => {
+        categoryNameToIdMap.set(cat.name, cat._id.toString());
+      });
+
       // Build category structure from static data
       const categoryMap = new Map<string, {
         id: string;
@@ -78,56 +88,72 @@ export const migrateStaticDataToMongoDB = api(
         }
       }
 
-      // Create categories in MongoDB
+      // Create categories only if they don't exist in MongoDB
       for (const [categoryId, categoryData] of categoryMap) {
         try {
-          const subcategoriesArray = Array.from(categoryData.subcategories.values()).map(sub => ({
-            id: sub.id,
-            name: sub.name,
-            slug: sub.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-            description: undefined,
-            displayOrder: sub.order,
-            isActive: true,
-            itemCount: 0
-          }));
+          if (!categoryNameToIdMap.has(categoryData.name)) {
+            const subcategoriesArray = Array.from(categoryData.subcategories.values()).map(sub => ({
+              id: sub.id,
+              name: sub.name,
+              slug: sub.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+              description: undefined,
+              displayOrder: sub.order,
+              isActive: true,
+              itemCount: 0
+            }));
 
-          const newCategoryData = {
-            restaurantId,
-            name: categoryData.name,
-            slug: categoryData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-            description: undefined,
-            imageUrl: undefined,
-            displayOrder: categoryData.order,
-            isActive: true,
-            subcategories: subcategoriesArray
-          };
+            const newCategoryData = {
+              restaurantId,
+              name: categoryData.name,
+              slug: categoryData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+              description: undefined,
+              imageUrl: undefined,
+              displayOrder: categoryData.order,
+              isActive: true,
+              subcategories: subcategoriesArray
+            };
 
-          const newCategoryId = await foodRepo.createCategory(newCategoryData);
-          categoriesCreated++;
+            const newCategoryId = await foodRepo.createCategory(newCategoryData);
+            categoryNameToIdMap.set(categoryData.name, newCategoryId);
+            categoriesCreated++;
 
-          log.info("Category migrated", {
-            originalId: categoryId,
-            newId: newCategoryId,
-            name: categoryData.name
-          });
+            log.info("Category created", {
+              originalId: categoryId,
+              newId: newCategoryId,
+              name: categoryData.name
+            });
+          } else {
+            log.info("Category already exists, skipping", {
+              name: categoryData.name,
+              existingId: categoryNameToIdMap.get(categoryData.name)
+            });
+          }
         } catch (error) {
           warnings.push(`Failed to create category ${categoryData.name}: ${error}`);
           log.error(error, "Failed to create category during migration", { categoryId, categoryData });
         }
       }
 
-      // Create menu items
+      // Create menu items with proper category references
       for (const itemData of food.items_vo) {
         try {
           const item = itemData.item;
 
-          // Find the new category ID (for now, we'll use the original ID as MongoDB will generate new ones)
-          const categoryId = itemData.main_category_id;
+          // Find the MongoDB category ID using the category name
+          const categoryName = itemData.main_category_name;
+          const mongodbCategoryId = categoryNameToIdMap.get(categoryName);
+
+          if (!mongodbCategoryId) {
+            warnings.push(`Category not found for item ${item.name}: ${categoryName}`);
+            continue;
+          }
+
+          // Use subcategory ID from static data (this will be matched in the category's subcategories)
           const subcategoryId = itemData.sub_category_id;
 
           const newItemData = {
             restaurantId,
-            categoryId,
+            categoryId: mongodbCategoryId, // Use MongoDB category ID
             subcategoryId,
             name: item.name,
             slug: item.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
@@ -180,12 +206,18 @@ export const migrateStaticDataToMongoDB = api(
           log.info("Item migrated", {
             originalId: item.id,
             newId: newItemId,
-            name: item.name
+            name: item.name,
+            categoryId: mongodbCategoryId
           });
-                 } catch (error) {
-           warnings.push(`Failed to create item ${itemData.item.name}: ${error}`);
-           log.error(error, "Failed to create item during migration", { itemId: itemData.item.id, itemName: itemData.item.name });
-         }
+                } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : String(error);
+          warnings.push(`Failed to create item ${itemData.item.name}: ${errorMessage}`);
+          log.error(error, "Failed to create item during migration", {
+            itemId: itemData.item.id,
+            itemName: itemData.item.name,
+            error: errorMessage
+          });
+        }
       }
 
       log.info("Migration completed", {

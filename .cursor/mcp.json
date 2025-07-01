@@ -8,6 +8,10 @@
         },
         "gsap-docs": {
             "url": "https://gitmcp.io/greensock/GSAP"
+        },
+        "playwright": {
+            "command": "npx",
+            "args": ["-y", "@executeautomation/playwright-mcp-server"]
         }
     }
 }

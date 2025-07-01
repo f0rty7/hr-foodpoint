@@ -1,56 +1,72 @@
 import { Injectable, signal, resource, computed, effect } from '@angular/core';
 import { environment } from '../../../../environments/environment';
 
+// New interfaces to match the MongoDB API structure
 export interface MenuItem {
-  id: string;
-  uniqueId: string;
+  _id?: string;
   name: string;
   description: string;
-  category_id: string;
-  is_veg: string;
-  price: number;
-  packing_charges: number;
-  image_url: string;
-  in_stock: number;
-  enabled: number;
-  variants: any;
-  addons: any;
-  recommended: boolean;
+  categoryId: string;
+  subcategoryId?: string;
+  basePrice: number;
+  packingCharges: number;
+  isVeg: boolean;
+  images: {
+    primary: string;
+    gallery?: string[];
+  };
+  isInStock: boolean;
+  isActive: boolean;
+  isRecommended: boolean;
+  tags: string[];
+  slug: string;
+  // Legacy compatibility fields
+  id?: string;
+  uniqueId?: string;
+  category_id?: string;
+  is_veg?: string;
+  price?: number;
+  packing_charges?: number;
+  image_url?: string;
+  in_stock?: number;
+  enabled?: number;
+  variants?: any;
+  addons?: any;
+  recommended?: boolean;
 }
 
-export interface SubCategory {
+export interface MenuCategory {
   id: string;
   name: string;
-  items_order: Array<{ id: string; name: string; }>;
-}
-
-export interface MainCategory {
-  id: string;
-  name: string;
-  main_category_order: number;
-  sub_categories_order: SubCategory[];
-}
-
-export interface ItemVO {
-  main_category_id: string;
-  main_category_name: string;
-  main_category_order: number;
-  sub_category_id: string;
-  sub_category_name: string;
-  sub_category_order: number;
-  item: MenuItem;
-  item_slot: any;
-  item_holiday_slots: any;
-  variant_groups_vo: any[];
+  displayOrder: number;
+  itemCount: number;
+  subcategories: {
+    id: string;
+    name: string;
+    displayOrder: number;
+    itemCount: number;
+  }[];
 }
 
 export interface MenuResponse {
-  categories: MainCategory[];
-  total_items: number;
-  total_categories: number;
-  out_of_stock_categories: string[];
-  out_of_stock_sub_categories: string[];
-  all_items: ItemVO[];
+  categories: MenuCategory[];
+  totalItems: number;
+  totalCategories: number;
+  lastUpdated: Date;
+}
+
+export interface SearchMenuResponse {
+  items: MenuItem[];
+  totalResults: number;
+  searchQuery: string;
+  filtersApplied: {
+    category?: string;
+    vegOnly?: boolean;
+    maxPrice?: number;
+    minPrice?: number;
+    inStockOnly?: boolean;
+    tags?: string[];
+  };
 }
 
 export interface SearchFilters {
@@ -77,11 +93,10 @@ export class FoodListingService {
   sortBy = signal<'name' | 'price' | 'popularity'>('popularity');
   sortOrder = signal<'asc' | 'desc'>('asc');
 
-      // Resource for fetching menu data (Angular v20 Resource API)
+  // Resource for fetching menu structure
   readonly menuResource = resource({
     loader: async ({ abortSignal }) => {
       try {
-        // Get authentication token from localStorage
         const token = localStorage.getItem('auth_token');
 
         if (!token) {
@@ -107,23 +122,16 @@ export class FoodListingService {
         }
 
         const data = await response.json();
-
-        console.log("🚀 ~ data:", data)
-
+        console.log("🚀 ~ Menu structure data:", data);
 
         if (environment.enableLogging) {
-          console.log('🍽️ Menu data fetched successfully:', data);
+          console.log('🍽️ Menu structure fetched successfully:', data);
         }
 
         return data as MenuResponse;
       } catch (error) {
-        if (error instanceof Error && error.name === 'AbortError') {
-          throw error;
-        }
+        console.error('Failed to fetch menu structure:', error);
 
-        console.error('Failed to fetch menu data:', error);
-
-        // Fallback to mock data only in development
         if (!environment.production) {
           console.warn('Using mock data as fallback in development mode');
           return this.getMockMenuData();
@@ -134,13 +142,75 @@ export class FoodListingService {
     }
   });
 
-  // Signal for detailed items fetched from API
-  private detailedItems = signal<ItemVO[]>([]);
+  // Signal for detailed items fetched from search API
+  private detailedItems = signal<MenuItem[]>([]);
 
-  // Computed signal for filtered and sorted items (now uses API data)
-  readonly flattenedItems = computed(() => {
-    return this.detailedItems();
+  // Load all items using the search API (which returns all items when no filters)
+  private loadAllItems = resource({
+    loader: async ({ abortSignal }) => {
+      try {
+        const token = localStorage.getItem('auth_token');
+        if (!token) {
+          throw new Error('Authentication required');
+        }
+
+        const response = await fetch(`${this.API_BASE_URL}menu/search?limit=1000`, {
+          signal: abortSignal,
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to load items: ${response.status}`);
+        }
+
+        const data = await response.json() as SearchMenuResponse;
+        console.log("🚀 ~ All items loaded:", data);
+
+        // Transform items to legacy format for compatibility
+        const transformedItems = data.items.map(item => this.transformToLegacyFormat(item));
+
+        return transformedItems;
+      } catch (error) {
+        console.error('Failed to load all items:', error);
+
+        if (!environment.production) {
+          return this.generateMockItems();
+        }
+
+        throw error;
+      }
+    }
   });
+
+  // Computed signal for items
+  readonly flattenedItems = computed(() => {
+    const items = this.loadAllItems.value();
+    return items || [];
+  });
+
+  // Transform new format to legacy format for compatibility
+  private transformToLegacyFormat(item: MenuItem): any {
+    return {
+      // Keep new format fields first
+      ...item,
+      // Then add/override with legacy format fields
+      id: item._id || item.id,
+      uniqueId: item._id || item.id,
+      category_id: item.categoryId,
+      is_veg: item.isVeg ? 'VEG' : 'NON_VEG',
+      price: item.basePrice,
+      packing_charges: item.packingCharges,
+      image_url: item.images?.primary || '',
+      in_stock: item.isInStock ? 1 : 0,
+      enabled: item.isActive ? 1 : 0,
+      variants: null,
+      addons: null,
+      recommended: item.isRecommended
+    };
+  }
 
   // Computed signal for filtered and sorted items
   readonly filteredItems = computed(() => {
@@ -158,29 +228,39 @@ export class FoodListingService {
     // Apply filters
     if (query) {
       filtered = filtered.filter(item =>
-        item.item.name.toLowerCase().includes(query) ||
-        item.item.description.toLowerCase().includes(query)
+        item.name.toLowerCase().includes(query) ||
+        item.description.toLowerCase().includes(query)
       );
     }
 
     if (category) {
-      filtered = filtered.filter(item => item.main_category_id === category);
+      filtered = filtered.filter(item =>
+        item.category_id === category || item.categoryId === category
+      );
     }
 
     if (vegOnly) {
-      filtered = filtered.filter(item => item.item.is_veg === 'VEG');
+      filtered = filtered.filter(item =>
+        item.is_veg === 'VEG' || item.isVeg === true
+      );
     }
 
     if (inStockOnly) {
-      filtered = filtered.filter(item => item.item.in_stock === 1);
+      filtered = filtered.filter(item =>
+        item.in_stock === 1 || item.isInStock === true
+      );
     }
 
     if (priceRange.min !== undefined) {
-      filtered = filtered.filter(item => item.item.price >= priceRange.min!);
+      filtered = filtered.filter(item =>
+        (item.price || item.basePrice || 0) >= priceRange.min!
+      );
     }
 
     if (priceRange.max !== undefined) {
-      filtered = filtered.filter(item => item.item.price <= priceRange.max!);
+      filtered = filtered.filter(item =>
+        (item.price || item.basePrice || 0) <= priceRange.max!
+      );
     }
 
     // Apply sorting
@@ -189,13 +269,17 @@ export class FoodListingService {
 
       switch (sortBy) {
         case 'name':
-          comparison = a.item.name.localeCompare(b.item.name);
+          comparison = a.name.localeCompare(b.name);
           break;
         case 'price':
-          comparison = a.item.price - b.item.price;
+          const priceA = a.price || a.basePrice || 0;
+          const priceB = b.price || b.basePrice || 0;
+          comparison = priceA - priceB;
           break;
         case 'popularity':
-          comparison = (b.item.recommended ? 1 : 0) - (a.item.recommended ? 1 : 0);
+          const recA = a.recommended || a.isRecommended ? 1 : 0;
+          const recB = b.recommended || b.isRecommended ? 1 : 0;
+          comparison = recB - recA;
           break;
       }
 
@@ -205,51 +289,55 @@ export class FoodListingService {
     return filtered;
   });
 
-  // Computed signal for categories
+  // Computed signal for categories from the menu structure
   readonly categories = computed(() => {
     const menu = this.menuResource.value();
     return menu?.categories || [];
   });
 
-  // Computed signal for statistics
+    // Computed signal for menu statistics
   readonly menuStats = computed(() => {
-    const items = this.flattenedItems();
-    const filtered = this.filteredItems();
+    const items = this.filteredItems();
+    const totalItems = items.length;
+    const vegItems = items.filter(item =>
+      item.is_veg === 'VEG' || item.isVeg === true
+    ).length;
+    const inStockItems = items.filter(item =>
+      item.in_stock === 1 || item.isInStock === true
+    ).length;
+    const categories = this.categories().length;
+
+    // Calculate price statistics
+    const prices = items.map(item => item.price || item.basePrice || 0).filter(price => price > 0);
+    const averagePrice = prices.length > 0 ? prices.reduce((sum, price) => sum + price, 0) / prices.length : 0;
+    const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
+    const maxPrice = prices.length > 0 ? Math.max(...prices) : 0;
 
     return {
-      totalItems: items.length,
-      filteredItems: filtered.length,
-      categories: this.categories().length,
-      averagePrice: items.reduce((sum, item) => sum + item.item.price, 0) / items.length || 0,
+      totalItems,
+      vegItems,
+      nonVegItems: totalItems - vegItems,
+      inStockItems,
+      outOfStockItems: totalItems - inStockItems,
+      categories,
+      averagePrice,
       priceRange: {
-        min: Math.min(...items.map(item => item.item.price)),
-        max: Math.max(...items.map(item => item.item.price))
-      },
-      vegItems: items.filter(item => item.item.is_veg === 'VEG').length,
-      inStockItems: items.filter(item => item.item.in_stock === 1).length
+        min: minPrice,
+        max: maxPrice
+      }
     };
   });
 
   constructor() {
-    // Effect to load all items when menu is available
+    // Effect for logging when items are loaded
     effect(() => {
-      const menu = this.menuResource.value();
-
-      console.log("🚀 ~ menu:", menu)
-
-      if (menu?.all_items && this.detailedItems().length === 0) {
-        // Extract MenuItem objects from all_items
-        // const items = menu.all_items.map(itemVO => itemVO.item);
-        const items = menu.all_items;
-        this.detailedItems.set(items);
-
-        if (environment.enableLogging) {
-          console.log('🍽️ Loaded detailed items from all_items:', items.length);
-        }
+      const items = this.flattenedItems();
+      if (items.length > 0 && environment.enableLogging) {
+        console.log('🍽️ Items loaded:', items.length);
       }
     });
 
-    // Effect for logging search activity (Angular v20 effect API)
+    // Effect for logging search activity
     effect(() => {
       const stats = this.menuStats();
       if (environment.enableLogging) {
@@ -292,8 +380,8 @@ export class FoodListingService {
       throw new Error(`Search failed: ${response.status}`);
     }
 
-    const data = await response.json();
-    return data.items;
+    const data = await response.json() as SearchMenuResponse;
+    return data.items.map(item => this.transformToLegacyFormat(item));
   }
 
   // Method to get detailed item information
@@ -315,7 +403,7 @@ export class FoodListingService {
     }
 
     const data = await response.json();
-    return data.item;
+    return this.transformToLegacyFormat(data.item);
   }
 
   // Method to get category items
@@ -337,7 +425,7 @@ export class FoodListingService {
     }
 
     const data = await response.json();
-    return data.items;
+    return data.items.map((item: MenuItem) => this.transformToLegacyFormat(item));
   }
 
   // Methods for updating filters
@@ -369,149 +457,82 @@ export class FoodListingService {
   // Method to refresh menu data
   refreshMenu(): void {
     this.menuResource.reload();
-    this.detailedItems.set([]); // Clear items to trigger reload
+    this.loadAllItems.reload();
   }
 
-  // Helper method to generate mock items from menu structure (fallback)
-  private generateMockItems(menu: MenuResponse): MenuItem[] {
-    const items: MenuItem[] = [];
-
-
-
-    menu.categories.forEach((category: MainCategory) => {
-      category.sub_categories_order.forEach((subCategory: SubCategory) => {
-        subCategory.items_order.forEach((item: { id: string; name: string }) => {
-          items.push({
-            id: item.id,
-            uniqueId: item.id,
-            name: item.name,
-            description: `Delicious ${item.name} from ${category.name}`,
-            category_id: category.id,
-            is_veg: Math.random() > 0.5 ? 'VEG' : 'NON_VEG',
-            price: Math.floor(Math.random() * 500) + 100,
-            packing_charges: 20,
-            image_url: `https://picsum.photos/300/200?random=${item.id}`,
-            in_stock: Math.random() > 0.1 ? 1 : 0,
-            enabled: 1,
-            variants: null,
-            addons: null,
-            recommended: Math.random() > 0.7
-          });
-        });
-      });
-    });
-
-    console.log("🚀 ~ items:", items)
-    return items;
+  // Helper method to generate mock items for development
+  private generateMockItems(): any[] {
+    return [
+      {
+        id: 'mock1',
+        uniqueId: 'mock1',
+        name: 'Sample Burger',
+        description: 'Delicious sample burger',
+        category_id: 'cat1',
+        is_veg: 'NON_VEG',
+        price: 250,
+        packing_charges: 20,
+        image_url: 'https://picsum.photos/300/200?random=1',
+        in_stock: 1,
+        enabled: 1,
+        variants: null,
+        addons: null,
+        recommended: true
+      },
+      {
+        id: 'mock2',
+        uniqueId: 'mock2',
+        name: 'Veggie Pizza',
+        description: 'Fresh vegetarian pizza',
+        category_id: 'cat2',
+        is_veg: 'VEG',
+        price: 300,
+        packing_charges: 25,
+        image_url: 'https://picsum.photos/300/200?random=2',
+        in_stock: 1,
+        enabled: 1,
+        variants: null,
+        addons: null,
+        recommended: false
+      }
+    ];
   }
 
   // Getters for convenience
   get isLoading(): boolean {
-    return this.menuResource.isLoading();
+    return this.menuResource.isLoading() || this.loadAllItems.isLoading();
   }
 
   get error(): any {
-    return this.menuResource.error();
+    return this.menuResource.error() || this.loadAllItems.error();
   }
 
   get hasError(): boolean {
-    return this.menuResource.status() === 'error';
+    return this.menuResource.status() === 'error' || this.loadAllItems.status() === 'error';
   }
 
   // Mock data for development/fallback
   private getMockMenuData(): MenuResponse {
-    const mockItems: ItemVO[] = [
-      {
-        main_category_id: "1",
-        main_category_name: "American Cuisine",
-        main_category_order: 1,
-        sub_category_id: "11",
-        sub_category_name: "Burgers",
-        sub_category_order: 1,
-        item: {
-          id: "burger1",
-          uniqueId: "burger1",
-          name: "American Style Burger",
-          description: "Delicious American style burger",
-          category_id: "1",
-          is_veg: "NON_VEG",
-          price: 299,
-          packing_charges: 20,
-          image_url: "https://picsum.photos/300/200?random=burger1",
-          in_stock: 1,
-          enabled: 1,
-          variants: null,
-          addons: null,
-          recommended: true
-        },
-        item_slot: null,
-        item_holiday_slots: null,
-        variant_groups_vo: []
-      }
-    ];
-
     return {
       categories: [
         {
-          id: "1",
-          name: "American Cuisine",
-          main_category_order: 1,
-          sub_categories_order: [
-            {
-              id: "11",
-              name: "Burgers",
-              items_order: [
-                { id: "burger1", name: "American Style Burger" },
-                { id: "burger2", name: "Cheese Burger" },
-                { id: "burger3", name: "Chicken Burger" }
-              ]
-            },
-            {
-              id: "12",
-              name: "Pizza",
-              items_order: [
-                { id: "pizza1", name: "Margherita Pizza" },
-                { id: "pizza2", name: "Pepperoni Pizza" }
-              ]
-            }
-          ]
+          id: 'cat1',
+          name: 'Main Courses',
+          displayOrder: 1,
+          itemCount: 5,
+          subcategories: []
         },
         {
-          id: "2",
-          name: "Asian Cuisine",
-          main_category_order: 2,
-          sub_categories_order: [
-            {
-              id: "21",
-              name: "Chinese",
-              items_order: [
-                { id: "chinese1", name: "Fried Rice" },
-                { id: "chinese2", name: "Noodles" }
-              ]
-            }
-          ]
-        },
-        {
-          id: "3",
-          name: "European Cuisine",
-          main_category_order: 3,
-          sub_categories_order: [
-            {
-              id: "31",
-              name: "Italian",
-              items_order: [
-                { id: "italian1", name: "Pasta" },
-                { id: "italian2", name: "Risotto" }
-              ]
-            }
-          ]
+          id: 'cat2',
+          name: 'Appetizers',
+          displayOrder: 2,
+          itemCount: 3,
+          subcategories: []
         }
       ],
-      total_items: 7,
-      total_categories: 3,
-      out_of_stock_categories: [],
-      out_of_stock_sub_categories: [],
-      all_items: mockItems
+      totalItems: 8,
+      totalCategories: 2,
+      lastUpdated: new Date()
     };
   }
 }

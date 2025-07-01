@@ -7,21 +7,21 @@ import { MenuItem } from '../../services/food-listing.service';
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="food-card" [class.out-of-stock]="menuItem().in_stock === 0">
+    <div class="food-card" [class.out-of-stock]="menuItem().in_stock === 0 || menuItem().isInStock === false">
       <div class="card-image">
         <img
-          [src]="menuItem().image_url"
+          [src]="menuItem().image_url || menuItem().images?.primary || 'assets/images/food-plate.webp'"
           [alt]="menuItem().name"
           loading="lazy"
           (error)="onImageError($event)"
         />
-        @if (menuItem().recommended) {
+        @if (menuItem().recommended || menuItem().isRecommended) {
           <div class="recommended-badge">⭐ Recommended</div>
         }
-        @if (menuItem().is_veg === 'Yes') {
+        @if (menuItem().is_veg === 'VEG' || menuItem().isVeg === true) {
           <div class="veg-badge">🌱 Veg</div>
         }
-        @if (menuItem().in_stock === 0) {
+        @if (menuItem().in_stock === 0 || menuItem().isInStock === false) {
           <div class="out-of-stock-overlay">
             <span>Out of Stock</span>
           </div>
@@ -33,18 +33,18 @@ import { MenuItem } from '../../services/food-listing.service';
         <p class="food-description">{{ menuItem().description }}</p>
 
         <div class="price-section">
-          <div class="price">₹{{ menuItem().price }}</div>
-          @if (menuItem().packing_charges > 0) {
-            <div class="packing-charges">+ ₹{{ menuItem().packing_charges }} packing</div>
+          <div class="price">₹{{ menuItem().price || menuItem().basePrice }}</div>
+          @if ((menuItem().packing_charges || menuItem().packingCharges || 0) > 0) {
+            <div class="packing-charges">+ ₹{{ menuItem().packing_charges || menuItem().packingCharges }} packing</div>
           }
         </div>
 
         <div class="card-actions">
           <button
             class="order-btn"
-            [disabled]="menuItem().in_stock === 0"
+            [disabled]="menuItem().in_stock === 0 || menuItem().isInStock === false"
             (click)="onOrderClick()">
-            {{ menuItem().in_stock === 0 ? 'Out of Stock' : 'Order Me' }}
+            {{ (menuItem().in_stock === 0 || menuItem().isInStock === false) ? 'Out of Stock' : 'Order Me' }}
           </button>
 
           <div class="quantity-controls" [class.hidden]="!showQuantityControls()">
@@ -67,7 +67,7 @@ export class FoodCardComponent {
   showQuantityControls = signal(false);
 
   onOrderClick(): void {
-    if (this.menuItem().in_stock === 0) return;
+    if (this.menuItem().in_stock === 0 || this.menuItem().isInStock === false) return;
 
     if (this.quantity() === 0) {
       this.increaseQuantity();

@@ -18,13 +18,13 @@ import { ContactService } from '../../services/contact.service';
           </div>
         }
 
-        @if (info.phone?.main || info.email?.general) {
+        @if (info.phone.main || info.email.general) {
           <div class="contact-item">
             <div class="contact-text">
-              @if (info.phone?.main) {
+              @if (info.phone.main) {
                 {{ info.phone.main }}<br>
               }
-              @if (info.email?.general) {
+              @if (info.email.general) {
                 {{ info.email.general }}
               }
             </div>
@@ -46,7 +46,7 @@ import { ContactService } from '../../services/contact.service';
           </div>
         }
 
-        @if (info?.socialLinks) {
+        @if (info.socialLinks) {
           <div class="social-links">
             @if (info.socialLinks.facebook) {
               <a [href]="info.socialLinks.facebook" class="social-link facebook" aria-label="Facebook" target="_blank" rel="noopener">
