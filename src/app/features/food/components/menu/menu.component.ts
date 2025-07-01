@@ -7,7 +7,9 @@ import { FoodService } from '../../services/food.service';
 import { FoodCardComponent } from '../food-card/food-card.component';
 import { FilterSidebarComponent } from '../filter-sidebar/filter-sidebar.component';
 import { OrderDetailsComponent } from '../order-details/order-details.component';
+import { AddItemFormComponent, NewMenuItem } from '../add-item-form/add-item-form.component';
 import { AuthService } from '../../../auth/services/auth.service';
+import { environment } from '../../../../../environments/environment';
 
 @Component({
   selector: 'app-food-menu',
@@ -18,7 +20,8 @@ import { AuthService } from '../../../auth/services/auth.service';
     RouterModule,
     FoodCardComponent,
     FilterSidebarComponent,
-    OrderDetailsComponent
+    OrderDetailsComponent,
+    AddItemFormComponent
   ],
   template: `
     <div class="food-listing-container">
@@ -171,8 +174,8 @@ import { AuthService } from '../../../auth/services/auth.service';
           <div class="food-grid">
             @if(authService.isAdmin() && foodService.selectedCategory()) {
               <div class="add-food-button">
-                <button>
-                  Add Food
+                <button (click)="openAddItemForm()" [disabled]="isAddingItem()">
+                  {{ isAddingItem() ? 'Adding...' : 'Add Item' }}
                 </button>
               </div>
             }
@@ -198,6 +201,16 @@ import { AuthService } from '../../../auth/services/auth.service';
         <app-order-details [items]="cartService.cart()" />
       </aside>
     </div>
+
+    <!-- Add Item Form Modal -->
+    @if (showAddItemForm()) {
+      <app-add-item-form
+        [selectedCategoryId]="selectedCategoryId()"
+        [selectedCategoryName]="selectedCategoryName()"
+        (itemAdded)="onItemAdded($event)"
+        (close)="closeAddItemForm()"
+      />
+    }
   `,
   styleUrl: './menu.component.scss'
 })
@@ -215,7 +228,17 @@ export class MenuListingComponent {
   // Local component signals
   showSortDropdown = signal(false);
   showFilterDropdown = signal(false);
-  // isAdmin = signal(false)
+  showAddItemForm = signal(false);
+  isAddingItem = signal(false);
+
+  // Computed values for selected category
+  selectedCategoryId = computed(() => this.foodService.selectedCategory() || '');
+  selectedCategoryName = computed(() => {
+    const categoryId = this.foodService.selectedCategory();
+    if (!categoryId) return '';
+    const category = this.foodService.categories().find(c => c.id === categoryId);
+    return category?.name || '';
+  });
 
   onSearchInput(event: Event): void {
     const target = event.target as HTMLInputElement;
@@ -259,5 +282,53 @@ export class MenuListingComponent {
 
   logCategory(category: any): void {
     console.log("🚀 ~ logCategory ~ category:", category)
+  }
+
+  // Add Item functionality
+  openAddItemForm(): void {
+    this.showAddItemForm.set(true);
+  }
+
+  closeAddItemForm(): void {
+    this.showAddItemForm.set(false);
+    this.isAddingItem.set(false);
+  }
+
+  async onItemAdded(newItem: NewMenuItem): Promise<void> {
+    try {
+      this.isAddingItem.set(true);
+
+      const response = await fetch(`${environment.apiUrl}menu/items`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+        },
+        body: JSON.stringify(newItem)
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to create item: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      console.log('✅ Item created successfully:', result);
+
+      // Close the form
+      this.closeAddItemForm();
+
+      // Refresh the menu to show the new item
+      await this.foodService.refreshMenu();
+
+      // Show success message (you can enhance this with a toast notification)
+      alert(`Successfully added "${newItem.name}" to ${this.selectedCategoryName()}!`);
+
+    } catch (error) {
+      console.error('❌ Failed to create item:', error);
+      this.isAddingItem.set(false);
+
+      // Show error message (you can enhance this with a toast notification)
+      alert(`Failed to add item: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 }
