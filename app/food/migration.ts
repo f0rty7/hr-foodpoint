@@ -290,3 +290,120 @@ export const clearMongoDBData = api(
     }
   }
 );
+
+// Fix category ID mapping for existing items
+export const fixCategoryMapping = api(
+  {
+    method: "POST",
+    path: "/api/menu/fix-category-mapping",
+    auth: true,
+    expose: true
+  },
+  async (): Promise<{ message: string; itemsUpdated: number; warnings: string[] }> => {
+    const authData = getAuthData();
+    if (!authData) {
+      throw new Error("Authentication required");
+    }
+
+    log.info("Starting category ID mapping fix", {
+      userId: authData.userID,
+      email: authData.email
+    });
+
+    const warnings: string[] = [];
+    let itemsUpdated = 0;
+
+    try {
+      const restaurantId = "default";
+
+      // Get existing categories from MongoDB to create mapping
+      const categoriesCollection = await foodRepo['getCategoriesCollection']();
+      const existingCategories = await categoriesCollection.find({ restaurantId }).toArray();
+
+      // Create mapping from category name to MongoDB category ID
+      const categoryNameToIdMap = new Map<string, string>();
+      existingCategories.forEach(cat => {
+        categoryNameToIdMap.set(cat.name, cat._id.toString());
+      });
+
+      // Create mapping from original category IDs to MongoDB category IDs
+      const originalToMongoIdMap = new Map<string, string>();
+
+      // Build mapping from static data
+      for (const item of food.items_vo) {
+        const originalCategoryId = item.main_category_id;
+        const categoryName = item.main_category_name;
+        const mongoId = categoryNameToIdMap.get(categoryName);
+
+        if (mongoId && !originalToMongoIdMap.has(originalCategoryId)) {
+          originalToMongoIdMap.set(originalCategoryId, mongoId);
+          log.info("Category mapping created", {
+            originalId: originalCategoryId,
+            categoryName,
+            mongoId
+          });
+        }
+      }
+
+      // Get all menu items that need updating
+      const menuItemsCollection = await foodRepo['getMenuItemsCollection']();
+      const allItems = await menuItemsCollection.find({ restaurantId }).toArray();
+
+      // Update items with correct category IDs
+      for (const item of allItems) {
+        try {
+          const currentCategoryId = item.categoryId;
+          const newCategoryId = originalToMongoIdMap.get(currentCategoryId);
+
+          if (newCategoryId && newCategoryId !== currentCategoryId) {
+            // Update the item with the correct MongoDB category ID
+            await menuItemsCollection.updateOne(
+              { _id: item._id },
+              {
+                $set: {
+                  categoryId: newCategoryId,
+                  updatedAt: new Date()
+                }
+              }
+            );
+
+            itemsUpdated++;
+            log.info("Item category ID updated", {
+              itemId: item._id,
+              itemName: item.name,
+              oldCategoryId: currentCategoryId,
+              newCategoryId
+            });
+          } else if (!originalToMongoIdMap.has(currentCategoryId)) {
+            warnings.push(`No mapping found for category ID ${currentCategoryId} (item: ${item.name})`);
+          }
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : String(error);
+          warnings.push(`Failed to update item ${item.name}: ${errorMessage}`);
+          log.error(error, "Failed to update item category ID", {
+            itemId: item._id,
+            itemName: item.name
+          });
+        }
+      }
+
+      // Invalidate menu view after updating items
+      await foodRepo['invalidateMenuView'](restaurantId);
+
+      log.info("Category ID mapping fix completed", {
+        userId: authData.userID,
+        itemsUpdated,
+        warningsCount: warnings.length
+      });
+
+      return {
+        message: "Category ID mapping fix completed successfully",
+        itemsUpdated,
+        warnings
+      };
+    } catch (error) {
+      log.error(error, "Category ID mapping fix failed", { userId: authData.userID });
+      throw error;
+    }
+  }
+);
