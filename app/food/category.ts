@@ -1,21 +1,19 @@
 import { api, Query } from "encore.dev/api";
 import { getAuthData } from "~encore/auth";
-import { food } from "./food";
 import log from "encore.dev/log";
-import { MainCategory, SubCategory, ItemVO, MenuResponse, MenuCategoryResponse } from "./types";
+import { FoodRepository } from "./repository";
+import {
+  MenuResponse,
+  MenuCategoryResponse,
+  CreateCategoryRequest
+} from "./types";
 
-// Request interfaces for creating menu categories
-interface CreateMenuCategoryRequest {
-  name: string;
-  main_category_order?: number;
-}
+const foodRepo = FoodRepository.getInstance();
 
-interface CreateMenuCategoryResponse {
-  id: string;
-  name: string;
-  main_category_order: number;
-  message: string;
-}
+// Initialize indexes on startup
+foodRepo.createIndexes().catch(err => {
+  log.error(err, "Failed to create indexes on startup");
+});
 
 // Get the complete menu with authentication
 export const getMenu = api(
@@ -25,7 +23,7 @@ export const getMenu = api(
     auth: true,
     expose: true
   },
-    async (): Promise<MenuResponse> => {
+  async (): Promise<MenuResponse> => {
     const authData = getAuthData();
     if (!authData) {
       throw new Error("Authentication required");
@@ -36,65 +34,13 @@ export const getMenu = api(
       email: authData.email
     });
 
-    // Process the food data to create a structured menu
-    const categories: MainCategory[] = [];
-    const categoryMap = new Map<string, MainCategory>();
-    let totalItems = 0;
-
-    // Process items_vo to build the menu structure
-    for (const item of food.items_vo) {
-      totalItems++;
-
-      const mainCategoryId = item.main_category_id;
-      const mainCategoryName = item.main_category_name;
-      const subCategoryId = item.sub_category_id;
-      const subCategoryName = item.sub_category_name;
-
-      // Get or create main category
-      let mainCategory = categoryMap.get(mainCategoryId);
-      if (!mainCategory) {
-        mainCategory = {
-          id: mainCategoryId,
-          name: mainCategoryName,
-          main_category_order: item.main_category_order,
-          sub_categories_order: []
-        };
-        categoryMap.set(mainCategoryId, mainCategory);
-        categories.push(mainCategory);
-      }
-
-      // Find or create subcategory
-      let subCategory = mainCategory.sub_categories_order.find(sc => sc.id === subCategoryId);
-      if (!subCategory) {
-        subCategory = {
-          id: subCategoryId,
-          name: subCategoryName,
-          items_order: []
-        };
-        mainCategory.sub_categories_order.push(subCategory);
-      }
-
-      // Add item to subcategory if not already present
-      const itemExists = subCategory.items_order.some(i => i.id === item.item.id);
-      if (!itemExists) {
-        subCategory.items_order.push({
-          id: item.item.id,
-          name: item.item.name
-        });
-      }
+    try {
+      const restaurantId = "default"; // You can make this dynamic based on user context
+      return await foodRepo.getMenuStructure(restaurantId);
+    } catch (error) {
+      log.error(error, "Failed to get menu", { userId: authData.userID });
+      throw error;
     }
-
-    // Sort categories by order
-    categories.sort((a, b) => a.main_category_order - b.main_category_order);
-
-    return {
-      categories,
-      total_items: totalItems,
-      total_categories: categories.length,
-      out_of_stock_categories: food.out_of_stock_categories,
-      out_of_stock_sub_categories: food.out_of_stock_sub_categories,
-      all_items: food.items_vo
-    };
   }
 );
 
@@ -106,7 +52,7 @@ export const getMenuCategory = api(
     auth: true,
     expose: true
   },
-    async ({ categoryId }: { categoryId: string }): Promise<MenuCategoryResponse> => {
+  async ({ categoryId }: { categoryId: string }): Promise<MenuCategoryResponse> => {
     const authData = getAuthData();
     if (!authData) {
       throw new Error("Authentication required");
@@ -118,54 +64,16 @@ export const getMenuCategory = api(
       categoryId
     });
 
-    // Find all items in the category
-    const categoryItems = food.items_vo.filter(item =>
-      item.main_category_id === categoryId
-    );
-
-    if (categoryItems.length === 0) {
-      throw new Error(`Category with ID ${categoryId} not found or has no items`);
+    try {
+      const restaurantId = "default"; // You can make this dynamic
+      return await foodRepo.getMenuCategory(categoryId, restaurantId);
+    } catch (error) {
+      log.error(error, "Failed to get menu category", {
+        userId: authData.userID,
+        categoryId
+      });
+      throw error;
     }
-
-    const firstItem = categoryItems[0];
-    const category: MainCategory = {
-      id: firstItem.main_category_id,
-      name: firstItem.main_category_name,
-      main_category_order: firstItem.main_category_order,
-      sub_categories_order: []
-    };
-
-    // Build subcategories for this category
-    const subCategoryMap = new Map<string, SubCategory>();
-
-    for (const item of categoryItems) {
-      const subCategoryId = item.sub_category_id;
-      const subCategoryName = item.sub_category_name;
-
-      let subCategory = subCategoryMap.get(subCategoryId);
-      if (!subCategory) {
-        subCategory = {
-          id: subCategoryId,
-          name: subCategoryName,
-          items_order: []
-        };
-        subCategoryMap.set(subCategoryId, subCategory);
-        category.sub_categories_order.push(subCategory);
-      }
-
-      const itemExists = subCategory.items_order.some(i => i.id === item.item.id);
-      if (!itemExists) {
-        subCategory.items_order.push({
-          id: item.item.id,
-          name: item.item.name
-        });
-      }
-    }
-
-    return {
-      category,
-      items: categoryItems.map(item => item.item)
-    };
   }
 );
 
@@ -177,7 +85,7 @@ export const getMenuCategories = api(
     auth: true,
     expose: true
   },
-    async (): Promise<{ categories: Array<{ id: string; name: string; order: number; item_count: number; }> }> => {
+  async (): Promise<{ categories: MenuResponse['categories'] }> => {
     const authData = getAuthData();
     if (!authData) {
       throw new Error("Authentication required");
@@ -188,30 +96,17 @@ export const getMenuCategories = api(
       email: authData.email
     });
 
-    const categoryMap = new Map<string, { id: string; name: string; order: number; item_count: number; }>();
+    try {
+      const restaurantId = "default";
+      const menuStructure = await foodRepo.getMenuStructure(restaurantId);
 
-    // Count items per category
-    for (const item of food.items_vo) {
-      const categoryId = item.main_category_id;
-      const categoryName = item.main_category_name;
-      const categoryOrder = item.main_category_order;
-
-      if (categoryMap.has(categoryId)) {
-        categoryMap.get(categoryId)!.item_count++;
-      } else {
-        categoryMap.set(categoryId, {
-          id: categoryId,
-          name: categoryName,
-          order: categoryOrder,
-          item_count: 1
-        });
-      }
+      return {
+        categories: menuStructure.categories
+      };
+    } catch (error) {
+      log.error(error, "Failed to get menu categories", { userId: authData.userID });
+      throw error;
     }
-
-    const categories = Array.from(categoryMap.values())
-      .sort((a, b) => a.order - b.order);
-
-    return { categories };
   }
 );
 
@@ -223,51 +118,52 @@ export const createMenuCategory = api(
     auth: true,
     expose: true
   },
-  async (params: CreateMenuCategoryRequest): Promise<CreateMenuCategoryResponse> => {
+  async (params: CreateCategoryRequest): Promise<{ id: string; message: string }> => {
     const authData = getAuthData();
     if (!authData) {
       throw new Error("Authentication required");
     }
 
-    log.info("Creating new menu category", {
+    log.info("Creating menu category", {
       userId: authData.userID,
       email: authData.email,
       categoryName: params.name
     });
 
-    // Validate required fields
-    if (!params.name || params.name.trim().length === 0) {
-      throw new Error("Category name is required");
+    try {
+      const restaurantId = "default"; // You can make this dynamic
+
+      const categoryData = {
+        restaurantId,
+        name: params.name,
+        slug: params.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+        description: params.description,
+        imageUrl: params.imageUrl,
+        displayOrder: params.displayOrder || 999,
+        isActive: true,
+        subcategories: (params.subcategories || []).map((sub, index) => ({
+          id: `sub_${Date.now()}_${index}`,
+          name: sub.name,
+          slug: sub.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+          description: sub.description,
+          displayOrder: sub.displayOrder || index,
+          isActive: true,
+          itemCount: 0
+        }))
+      };
+
+      const categoryId = await foodRepo.createCategory(categoryData);
+
+      return {
+        id: categoryId,
+        message: `Category '${params.name}' created successfully`
+      };
+    } catch (error) {
+      log.error(error, "Failed to create category", {
+        userId: authData.userID,
+        categoryName: params.name
+      });
+      throw error;
     }
-
-    // Check if category with same name already exists
-    const existingCategory = food.items_vo.find(item =>
-      item.main_category_name.toLowerCase() === params.name.toLowerCase()
-    );
-
-    if (existingCategory) {
-      throw new Error(`Category with name "${params.name}" already exists`);
-    }
-
-    // Generate new category ID
-    const newCategoryId = `cat_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-
-    // Determine category order
-    const maxOrder = Math.max(...food.items_vo.map(item => item.main_category_order), 0);
-    const categoryOrder = params.main_category_order ?? (maxOrder + 1);
-
-    log.info("Menu category created", {
-      userId: authData.userID,
-      categoryId: newCategoryId,
-      categoryName: params.name,
-      order: categoryOrder
-    });
-
-    return {
-      id: newCategoryId,
-      name: params.name.trim(),
-      main_category_order: categoryOrder,
-      message: "Menu category created successfully"
-    };
   }
 );
