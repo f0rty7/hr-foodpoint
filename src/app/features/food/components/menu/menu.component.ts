@@ -182,10 +182,26 @@ interface Category {
         @if (!foodService.isLoading && !foodService.hasError) {
           <div class="food-grid">
             @if(authService.isAdmin() && foodService.selectedCategory()) {
-              <div class="add-food-button">
-                <button (click)="openAddItemForm()" [disabled]="isAddingItem()">
-                  {{ isAddingItem() ? 'Adding...' : 'Add Item' }}
-                </button>
+              <div class="add-item-card food-card" (click)="openAddItemForm()" [class.disabled]="isAddingItem()">
+                <div class="card-image add-item-image">
+                  <div class="add-icon">
+                    @if (isAddingItem()) {
+                      <div class="loading-spinner"></div>
+                    } @else {
+                      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                      </svg>
+                    }
+                  </div>
+                </div>
+                <div class="card-content">
+                  <h3 class="food-name">{{ isAddingItem() ? 'Adding Item...' : 'Add New Item' }}</h3>
+                  <p class="food-description">Click to add a new menu item to {{ selectedCategoryName() }}</p>
+                  <div class="add-item-footer">
+                    <span class="add-text">+ Add Item</span>
+                  </div>
+                </div>
               </div>
             }
             @for (item of foodService.filteredItems(); track item.id || item._id) {
