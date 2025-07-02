@@ -99,7 +99,8 @@ interface Category {
                   [checked]="foodService.vegOnly()"
                   (change)="onVegOnlyChange($event)"
                 />
-                Vegetarian Only
+                <span class="checkmark"></span>
+                <span>Vegetarian Only</span>
               </label>
               <label class="dropdown-item">
                 <input
@@ -107,7 +108,8 @@ interface Category {
                   [checked]="foodService.inStockOnly()"
                   (change)="onInStockOnlyChange($event)"
                 />
-                In Stock Only
+                <span class="checkmark"></span>
+                <span>In Stock Only</span>
               </label>
             </div>
           }

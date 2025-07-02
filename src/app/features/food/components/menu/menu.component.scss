@@ -4,7 +4,7 @@
   margin: 0 auto;
   padding: 20px;
   gap: 20px;
-  min-height: calc(100vh - 200px);
+  min-height: calc(100vh - 69px);
 
   @media (max-width: 768px) {
     flex-direction: column;
@@ -217,7 +217,56 @@
       .dropdown-item {
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 12px;
+        padding: 8px 12px;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+
+        &:hover {
+          background: #f7fafc;
+        }
+
+        input[type="checkbox"] {
+          display: none;
+        }
+
+        .checkmark {
+          width: 20px;
+          height: 20px;
+          border: 2px solid #e2e8f0;
+          border-radius: 4px;
+          position: relative;
+          transition: all 0.2s ease;
+          flex-shrink: 0;
+
+          &::after {
+            content: '';
+            position: absolute;
+            left: 5px;
+            top: 2px;
+            width: 6px;
+            height: 10px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+            display: none;
+          }
+        }
+
+        input:checked + .checkmark {
+          background: #ed8936;
+          border-color: #ed8936;
+
+          &::after {
+            display: block;
+          }
+        }
+
+        span:not(.checkmark) {
+          font-size: 14px;
+          color: #4a5568;
+          font-weight: 500;
+        }
       }
     }
   }
