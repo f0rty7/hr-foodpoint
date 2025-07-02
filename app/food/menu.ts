@@ -13,7 +13,8 @@ export {
 export {
   getMenuItem,
   searchMenu,
-  createMenuItem
+  createMenuItem,
+  updateMenuItem
 } from "./item";
 
 // Migration-related exports

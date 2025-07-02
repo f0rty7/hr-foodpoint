@@ -1,4 +1,4 @@
-import { Component, input, signal } from '@angular/core';
+import { Component, input, signal, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MenuItem } from '../../services/food-listing.service';
 
@@ -24,6 +24,16 @@ import { MenuItem } from '../../services/food-listing.service';
         @if (menuItem().in_stock === 0 || menuItem().isInStock === false) {
           <div class="out-of-stock-overlay">
             <span>Out of Stock</span>
+          </div>
+        }
+        @if (isAdmin()) {
+          <div class="admin-controls">
+            <button class="edit-btn" (click)="onEditClick()" title="Edit Item">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
+            </button>
           </div>
         }
       </div>
@@ -61,6 +71,10 @@ import { MenuItem } from '../../services/food-listing.service';
 export class FoodCardComponent {
   // Using Angular v20 input signals
   menuItem = input.required<MenuItem>();
+  isAdmin = input<boolean>(false);
+
+  // Output events
+  editItem = output<MenuItem>();
 
   // Local component state
   quantity = signal(0);
@@ -73,6 +87,10 @@ export class FoodCardComponent {
       this.increaseQuantity();
       this.showQuantityControls.set(true);
     }
+  }
+
+  onEditClick(): void {
+    this.editItem.emit(this.menuItem());
   }
 
   increaseQuantity(): void {

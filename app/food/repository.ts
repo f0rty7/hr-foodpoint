@@ -1,4 +1,5 @@
 import { getMongoCollection } from "../shared/mongodb";
+import { ObjectId } from "mongodb";
 import { secret } from "encore.dev/config";
 import log from "encore.dev/log";
 import {
@@ -157,7 +158,7 @@ export class FoodRepository {
       const menuItemsCollection = await this.getMenuItemsCollection();
 
       const item = await menuItemsCollection.findOne({
-        _id: itemId,
+        _id: new ObjectId(itemId),
         restaurantId,
         isActive: true
       }) as MenuItem;
@@ -350,6 +351,40 @@ export class FoodRepository {
     }
   }
 
+  async updateMenuItem(itemId: string, itemData: Omit<MenuItem, '_id' | 'createdAt' | 'searchText'>): Promise<void> {
+    try {
+      const menuItemsCollection = await this.getMenuItemsCollection();
+
+      const slug = this.generateSlug(itemData.name);
+
+      const updatedItem = {
+        ...itemData,
+        slug,
+        searchText: `${itemData.name} ${itemData.description} ${itemData.tags.join(' ')}`.toLowerCase(),
+        updatedAt: new Date()
+      };
+
+      const result = await menuItemsCollection.updateOne(
+        { _id: new ObjectId(itemId) },
+        { $set: updatedItem }
+      );
+
+      if (result.matchedCount === 0) {
+        throw new Error(`Menu item with ID ${itemId} not found`);
+      }
+
+      // Update category item count (in case category changed)
+      await this.updateCategoryItemCount(itemData.categoryId, itemData.subcategoryId);
+
+      // Invalidate menu view
+      await this.invalidateMenuView(itemData.restaurantId);
+
+    } catch (error) {
+      log.error(error, "Failed to update menu item", { itemId, itemData });
+      throw error;
+    }
+  }
+
   async createCategory(categoryData: Omit<Category, '_id' | 'createdAt' | 'updatedAt' | 'itemCount'>): Promise<string> {
     try {
       const categoriesCollection = await this.getCategoriesCollection();
@@ -382,7 +417,7 @@ export class FoodRepository {
   private async getCategoryById(categoryId: string, restaurantId: string): Promise<Category | null> {
     const categoriesCollection = await this.getCategoriesCollection();
     return await categoriesCollection.findOne({
-      _id: categoryId,
+      _id: new ObjectId(categoryId),
       restaurantId,
       isActive: true
     }) as Category;
@@ -403,7 +438,7 @@ export class FoodRepository {
         categoryId,
         restaurantId,
         isActive: true,
-        _id: { $ne: excludeItemId }
+        _id: { $ne: new ObjectId(excludeItemId) }
       },
       {
         sort: { isRecommended: -1, orderCount: -1 },
@@ -437,7 +472,7 @@ export class FoodRepository {
     }
 
     await categoriesCollection.updateOne(
-      { _id: categoryId },
+      { _id: new ObjectId(categoryId) },
       { $set: updateData }
     );
   }

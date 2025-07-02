@@ -1,242 +1,446 @@
-import { Component, EventEmitter, Output, Input, signal } from '@angular/core';
+import { Component, computed, effect, input, output, signal } from '@angular/core';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { FoodListingService } from '../../services/food-listing.service';
+import { environment } from '../../../../../environments/environment';
 
-export interface NewMenuItem {
+interface MenuItem {
+  _id?: string;
   name: string;
   description: string;
   categoryId: string;
   subcategoryId?: string;
-  isVeg: boolean;
   basePrice: number;
   packingCharges: number;
+  isVeg: boolean;
   images: {
     primary: string;
     gallery?: string[];
   };
-  spiceLevel: 'MILD' | 'MEDIUM' | 'HOT' | 'EXTRA_HOT';
   tags: string[];
-  allergens: string[];
-  isRecommended: boolean;
-  servingSize: number;
+  spiceLevel?: 'MILD' | 'MEDIUM' | 'HOT' | 'EXTRA_HOT';
+  allergens?: string[];
+  isRecommended?: boolean;
+  servingSize?: number;
+}
+
+interface Category {
+  id: string;
+  name: string;
+  subcategories?: Array<{
+    id: string;
+    name: string;
+  }>;
 }
 
 @Component({
   selector: 'app-add-item-form',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, ReactiveFormsModule],
   template: `
-    <div class="modal-overlay" (click)="onClose()">
+    <div class="modal-overlay" (click)="onCancel()">
       <div class="modal-content" (click)="$event.stopPropagation()">
         <div class="modal-header">
-          <h2>Add New Item to {{ selectedCategoryName }}</h2>
-          <button class="close-btn" (click)="onClose()">×</button>
+          <h2>{{ modalTitle() }}</h2>
+          <button type="button" class="close-btn" (click)="onCancel()">×</button>
         </div>
 
-        <form class="add-item-form" (ngSubmit)="onSubmit()" #itemForm="ngForm">
-          <div class="form-group">
-            <label for="name">Item Name *</label>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              [(ngModel)]="formData.name"
-              required
-              placeholder="Enter item name"
-              class="form-input"
-            />
-          </div>
+        <form [formGroup]="itemForm" (ngSubmit)="onSubmit()" class="modal-body">
+          <!-- Basic Information -->
+          <div class="form-section">
+            <h3>Basic Information</h3>
 
-          <div class="form-group">
-            <label for="description">Description *</label>
-            <textarea
-              id="description"
-              name="description"
-              [(ngModel)]="formData.description"
-              required
-              placeholder="Enter item description"
-              class="form-textarea"
-              rows="3"
-            ></textarea>
-          </div>
-
-          <div class="form-row">
             <div class="form-group">
-              <label for="basePrice">Price (₹) *</label>
+              <label for="name">Item Name *</label>
               <input
-                type="number"
-                id="basePrice"
-                name="basePrice"
-                [(ngModel)]="formData.basePrice"
-                required
-                min="0"
-                step="0.01"
-                placeholder="0.00"
-                class="form-input"
-              />
+                type="text"
+                id="name"
+                formControlName="name"
+                placeholder="Enter item name"
+                [class.error]="nameFieldInvalid()">
+              @if (nameFieldInvalid()) {
+                <div class="error-message">
+                  Item name is required
+                </div>
+              }
             </div>
 
             <div class="form-group">
-              <label for="packingCharges">Packing Charges (₹)</label>
-              <input
-                type="number"
-                id="packingCharges"
-                name="packingCharges"
-                [(ngModel)]="formData.packingCharges"
-                min="0"
-                step="0.01"
-                placeholder="0.00"
-                class="form-input"
-              />
+              <label for="description">Description *</label>
+              <textarea
+                id="description"
+                formControlName="description"
+                placeholder="Enter item description"
+                rows="3"
+                [class.error]="descriptionFieldInvalid()">
+              </textarea>
+              @if (descriptionFieldInvalid()) {
+                <div class="error-message">
+                  Description is required
+                </div>
+              }
             </div>
           </div>
 
-          <div class="form-group">
-            <label for="imageUrl">Image URL</label>
-            <input
-              type="url"
-              id="imageUrl"
-              name="imageUrl"
-              [(ngModel)]="formData.images.primary"
-              placeholder="https://example.com/image.jpg"
-              class="form-input"
-            />
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label for="servingSize">Serving Size</label>
-              <input
-                type="number"
-                id="servingSize"
-                name="servingSize"
-                [(ngModel)]="formData.servingSize"
-                min="1"
-                placeholder="1"
-                class="form-input"
-              />
-            </div>
+          <!-- Category Selection -->
+          <div class="form-section">
+            <h3>Category</h3>
 
             <div class="form-group">
-              <label for="spiceLevel">Spice Level</label>
+              <label for="categoryId">Category *</label>
               <select
-                id="spiceLevel"
-                name="spiceLevel"
-                [(ngModel)]="formData.spiceLevel"
-                class="form-select"
-              >
-                <option value="MILD">Mild</option>
-                <option value="MEDIUM">Medium</option>
-                <option value="HOT">Hot</option>
-                <option value="EXTRA_HOT">Extra Hot</option>
+                id="categoryId"
+                formControlName="categoryId"
+                [class.error]="categoryFieldInvalid()">
+                <option value="">Select a category</option>
+                @for (category of categories(); track category.id) {
+                  <option [value]="category.id">
+                    {{ category.name }}
+                  </option>
+                }
               </select>
+              @if (categoryFieldInvalid()) {
+                <div class="error-message">
+                  Category is required
+                </div>
+              }
             </div>
           </div>
 
-          <div class="form-group">
-            <label class="checkbox-label">
+          <!-- Pricing -->
+          <div class="form-section">
+            <h3>Pricing</h3>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="basePrice">Base Price *</label>
+                <input
+                  type="number"
+                  id="basePrice"
+                  formControlName="basePrice"
+                  placeholder="Enter price"
+                  min="0"
+                  step="0.01"
+                  [class.error]="basePriceFieldInvalid()">
+                @if (basePriceFieldInvalid()) {
+                  <div class="error-message">
+                    Valid price is required
+                  </div>
+                }
+              </div>
+
+              <div class="form-group">
+                <label for="packingCharges">Packing Charges</label>
+                <input
+                  type="number"
+                  id="packingCharges"
+                  formControlName="packingCharges"
+                  placeholder="Enter packing charges"
+                  min="0"
+                  step="0.01">
+              </div>
+            </div>
+          </div>
+
+          <!-- Item Details -->
+          <div class="form-section">
+            <h3>Item Details</h3>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="checkbox-label">
+                  <input
+                    type="checkbox"
+                    formControlName="isVeg">
+                  <span class="checkmark"></span>
+                  Vegetarian
+                </label>
+              </div>
+
+              <div class="form-group">
+                <label class="checkbox-label">
+                  <input
+                    type="checkbox"
+                    formControlName="isRecommended">
+                  <span class="checkmark"></span>
+                  Recommended
+                </label>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="spiceLevel">Spice Level</label>
+                <select id="spiceLevel" formControlName="spiceLevel">
+                  <option value="">Select spice level</option>
+                  @for (level of spiceLevels(); track level.value) {
+                    <option [value]="level.value">{{ level.label }}</option>
+                  }
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="servingSize">Serving Size</label>
+                <input
+                  type="number"
+                  id="servingSize"
+                  formControlName="servingSize"
+                  placeholder="1"
+                  min="1">
+              </div>
+            </div>
+          </div>
+
+          <!-- Images -->
+          <div class="form-section">
+            <h3>Images</h3>
+
+            <div class="form-group">
+              <label for="primaryImage">Primary Image URL *</label>
               <input
-                type="checkbox"
-                name="isVeg"
-                [(ngModel)]="formData.isVeg"
-              />
-              Vegetarian
-            </label>
+                type="url"
+                id="primaryImage"
+                formControlName="primaryImage"
+                placeholder="https://example.com/image.jpg"
+                [class.error]="primaryImageFieldInvalid()">
+              @if (primaryImageFieldInvalid()) {
+                <div class="error-message">
+                  Valid image URL is required
+                </div>
+              }
+            </div>
           </div>
 
-          <div class="form-group">
-            <label class="checkbox-label">
+          <!-- Tags -->
+          <div class="form-section">
+            <h3>Tags</h3>
+
+            <div class="form-group">
+              <label for="tags">Tags (comma-separated)</label>
               <input
-                type="checkbox"
-                name="isRecommended"
-                [(ngModel)]="formData.isRecommended"
-              />
-              Recommended
-            </label>
+                type="text"
+                id="tags"
+                formControlName="tags"
+                placeholder="spicy, popular, traditional">
+              <small class="help-text">Enter tags separated by commas</small>
+            </div>
           </div>
 
-          <div class="form-group">
-            <label for="tags">Tags (comma-separated)</label>
-            <input
-              type="text"
-              id="tags"
-              name="tags"
-              [(ngModel)]="tagsInput"
-              placeholder="spicy, popular, healthy"
-              class="form-input"
-            />
-          </div>
-
+          <!-- Form Actions -->
           <div class="form-actions">
-            <button type="button" class="btn btn-secondary" (click)="onClose()">
+            <button type="button" class="btn btn-secondary" (click)="onCancel()">
               Cancel
             </button>
             <button
               type="submit"
               class="btn btn-primary"
-              [disabled]="!itemForm.valid || isSubmitting()"
-            >
-              {{ isSubmitting() ? 'Adding...' : 'Add Item' }}
+              [disabled]="formInvalid() || isSubmitting()">
+              @if (isSubmitting()) {
+                <span>{{ submitButtonLoadingText() }}</span>
+              } @else {
+                <span>{{ submitButtonText() }}</span>
+              }
             </button>
           </div>
         </form>
       </div>
     </div>
   `,
-  styleUrl: './add-item-form.component.scss'
+  styleUrls: ['./add-item-form.component.scss']
 })
 export class AddItemFormComponent {
-  @Input() selectedCategoryId: string = '';
-  @Input() selectedCategoryName: string = '';
-  @Output() itemAdded = new EventEmitter<NewMenuItem>();
-  @Output() close = new EventEmitter<void>();
+  // Signal-based inputs
+  isVisible = input(false);
+  categories = input<Category[]>([]);
+  selectedCategoryId = input<string | null>(null);
+  editItem = input<MenuItem | null>(null);
 
+  // Signal-based outputs
+  itemCreated = output<void>();
+  itemUpdated = output<void>();
+  cancelled = output<void>();
+
+  // Internal signals
   isSubmitting = signal(false);
-  tagsInput = '';
 
-  formData: NewMenuItem = {
-    name: '',
-    description: '',
-    categoryId: '',
-    isVeg: true,
-    basePrice: 0,
-    packingCharges: 0,
-    images: {
-      primary: '',
-      gallery: []
-    },
-    spiceLevel: 'MILD',
-    tags: [],
-    allergens: [],
-    isRecommended: false,
-    servingSize: 1
-  };
+  // Computed signals
+  isEditMode = computed(() => this.editItem() !== null);
+  modalTitle = computed(() => this.isEditMode() ? 'Edit Menu Item' : 'Add Menu Item');
+  submitButtonText = computed(() => this.isEditMode() ? 'Update Item' : 'Create Item');
+  submitButtonLoadingText = computed(() => this.isEditMode() ? 'Updating...' : 'Creating...');
+  formInvalid = computed(() => !this.itemForm.valid);
 
-  ngOnInit() {
-    this.formData.categoryId = this.selectedCategoryId;
+  // Form field validation computed signals
+  nameFieldInvalid = computed(() => {
+    const control = this.itemForm.get('name');
+    return control ? control.invalid && control.touched : false;
+  });
+
+  descriptionFieldInvalid = computed(() => {
+    const control = this.itemForm.get('description');
+    return control ? control.invalid && control.touched : false;
+  });
+
+  categoryFieldInvalid = computed(() => {
+    const control = this.itemForm.get('categoryId');
+    return control ? control.invalid && control.touched : false;
+  });
+
+  basePriceFieldInvalid = computed(() => {
+    const control = this.itemForm.get('basePrice');
+    return control ? control.invalid && control.touched : false;
+  });
+
+  primaryImageFieldInvalid = computed(() => {
+    const control = this.itemForm.get('primaryImage');
+    return control ? control.invalid && control.touched : false;
+  });
+
+  // Static data as signals
+  spiceLevels = signal([
+    { value: 'MILD', label: 'Mild' },
+    { value: 'MEDIUM', label: 'Medium' },
+    { value: 'HOT', label: 'Hot' },
+    { value: 'EXTRA_HOT', label: 'Extra Hot' }
+  ]);
+
+  itemForm: FormGroup;
+
+  constructor(private fb: FormBuilder) {
+    this.itemForm = this.createForm();
+
+    // Effect to handle category pre-selection
+    effect(() => {
+      const categoryId = this.selectedCategoryId();
+      if (categoryId) {
+        this.itemForm.patchValue({ categoryId });
+      }
+    });
+
+    // Effect to handle form pre-filling for edit mode
+    effect(() => {
+      const editItem = this.editItem();
+      if (editItem) {
+        this.prefillForm(editItem);
+      }
+    });
   }
 
-  onSubmit() {
-    if (this.isSubmitting()) return;
+  private createForm(): FormGroup {
+    return this.fb.group({
+      name: ['', [Validators.required, Validators.minLength(2)]],
+      description: ['', [Validators.required, Validators.minLength(10)]],
+      categoryId: ['', Validators.required],
+      basePrice: [0, [Validators.required, Validators.min(0.01)]],
+      packingCharges: [0, [Validators.min(0)]],
+      isVeg: [true],
+      isRecommended: [false],
+      spiceLevel: [''],
+      servingSize: [1, [Validators.min(1)]],
+      primaryImage: ['', [Validators.required, Validators.pattern(/^https?:\/\/.+/)]],
+      tags: ['']
+    });
+  }
 
-    this.isSubmitting.set(true);
+  private prefillForm(item: MenuItem) {
+    this.itemForm.patchValue({
+      name: item.name,
+      description: item.description,
+      categoryId: item.categoryId,
+      basePrice: item.basePrice,
+      packingCharges: item.packingCharges || 0,
+      isVeg: item.isVeg,
+      isRecommended: item.isRecommended || false,
+      spiceLevel: item.spiceLevel || '',
+      servingSize: item.servingSize || 1,
+      primaryImage: item.images.primary,
+      tags: item.tags.join(', ')
+    });
+  }
 
-    // Process tags
-    this.formData.tags = this.tagsInput
-      .split(',')
-      .map(tag => tag.trim())
-      .filter(tag => tag.length > 0);
+  async onSubmit() {
+    if (this.itemForm.valid && !this.isSubmitting()) {
+      this.isSubmitting.set(true);
 
-    // Add default vegetarian tag
-    if (this.formData.isVeg && !this.formData.tags.includes('vegetarian')) {
-      this.formData.tags.push('vegetarian');
+      try {
+        const formValue = this.itemForm.value;
+
+        const itemData = {
+          name: formValue.name,
+          description: formValue.description,
+          categoryId: formValue.categoryId,
+          basePrice: parseFloat(formValue.basePrice),
+          packingCharges: parseFloat(formValue.packingCharges) || 0,
+          isVeg: formValue.isVeg,
+          isRecommended: formValue.isRecommended,
+          spiceLevel: formValue.spiceLevel || undefined,
+          servingSize: parseInt(formValue.servingSize) || 1,
+          images: {
+            primary: formValue.primaryImage,
+            gallery: []
+          },
+          tags: formValue.tags ? formValue.tags.split(',').map((tag: string) => tag.trim()).filter((tag: string) => tag) : [],
+          allergens: []
+        };
+
+        const token = localStorage.getItem('auth_token');
+        if (!token) {
+          throw new Error('Authentication required');
+        }
+
+        let response;
+        const editItem = this.editItem();
+
+        if (this.isEditMode() && editItem?._id) {
+          // Update existing item
+          response = await fetch(`${environment.apiUrl}menu/items/${editItem._id}`, {
+            method: 'PUT',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(itemData)
+          });
+        } else {
+          // Create new item
+          response = await fetch(`${environment.apiUrl}menu/items`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(itemData)
+          });
+        }
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        console.log('Item operation successful:', result);
+
+        // Reset form
+        this.itemForm.reset();
+
+        // Emit success event
+        if (this.isEditMode()) {
+          this.itemUpdated.emit();
+        } else {
+          this.itemCreated.emit();
+        }
+
+      } catch (error) {
+        console.error('Failed to save item:', error);
+        alert(`Failed to ${this.isEditMode() ? 'update' : 'create'} item. Please try again.`);
+      } finally {
+        this.isSubmitting.set(false);
+      }
     }
-
-    this.itemAdded.emit(this.formData);
   }
 
-  onClose() {
-    this.close.emit();
+  onCancel() {
+    this.itemForm.reset();
+    this.cancelled.emit();
   }
 }

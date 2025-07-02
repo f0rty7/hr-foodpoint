@@ -1,0 +1,1 @@
+import"./chunk-7CGTOI24.js";var t=[{path:"",loadComponent:()=>import("./chunk-OGAJSEVT.js").then(o=>o.FoodHomeComponent)},{path:"order",loadComponent:()=>import("./chunk-OQDU45J5.js").then(o=>o.MenuListingComponent)}];export{t as foodRoutes};

@@ -2,14 +2,23 @@ import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { FoodListingService } from '../../services/food-listing.service';
+import { FoodListingService, MenuItem } from '../../services/food-listing.service';
 import { FoodService } from '../../services/food.service';
 import { FoodCardComponent } from '../food-card/food-card.component';
 import { FilterSidebarComponent } from '../filter-sidebar/filter-sidebar.component';
 import { OrderDetailsComponent } from '../order-details/order-details.component';
-import { AddItemFormComponent, NewMenuItem } from '../add-item-form/add-item-form.component';
+import { AddItemFormComponent } from '../add-item-form/add-item-form.component';
 import { AuthService } from '../../../auth/services/auth.service';
 import { environment } from '../../../../../environments/environment';
+
+interface Category {
+  id: string;
+  name: string;
+  subcategories?: Array<{
+    id: string;
+    name: string;
+  }>;
+}
 
 @Component({
   selector: 'app-food-menu',
@@ -180,7 +189,7 @@ import { environment } from '../../../../../environments/environment';
               </div>
             }
             @for (item of foodService.filteredItems(); track item.id || item._id) {
-              <app-food-card [menuItem]="item" />
+              <app-food-card [menuItem]="item" [isAdmin]="authService.isAdmin()" (editItem)="onEditItem($event)" />
             } @empty {
               <div class="empty-state">
                 <div class="empty-icon">🍽️</div>
@@ -205,11 +214,14 @@ import { environment } from '../../../../../environments/environment';
     <!-- Add Item Form Modal -->
     @if (showAddItemForm()) {
       <app-add-item-form
-        [selectedCategoryId]="selectedCategoryId()"
-        [selectedCategoryName]="selectedCategoryName()"
-        (itemAdded)="onItemAdded($event)"
-        (close)="closeAddItemForm()"
-      />
+        [isVisible]="true"
+        [categories]="foodService.categories()"
+        [selectedCategoryId]="foodService.selectedCategory() || null"
+        [editItem]="editingItem()"
+        (itemCreated)="onItemCreated()"
+        (itemUpdated)="onItemUpdated()"
+        (cancelled)="closeAddItemForm()">
+      </app-add-item-form>
     }
   `,
   styleUrl: './menu.component.scss'
@@ -230,6 +242,7 @@ export class MenuListingComponent {
   showFilterDropdown = signal(false);
   showAddItemForm = signal(false);
   isAddingItem = signal(false);
+  editingItem = signal<MenuItem | null>(null);
 
   // Computed values for selected category
   selectedCategoryId = computed(() => this.foodService.selectedCategory() || '');
@@ -286,49 +299,37 @@ export class MenuListingComponent {
 
   // Add Item functionality
   openAddItemForm(): void {
+    this.editingItem.set(null);
     this.showAddItemForm.set(true);
   }
 
   closeAddItemForm(): void {
     this.showAddItemForm.set(false);
+    this.editingItem.set(null);
     this.isAddingItem.set(false);
   }
 
-  async onItemAdded(newItem: NewMenuItem): Promise<void> {
-    try {
-      this.isAddingItem.set(true);
+  async onItemCreated(): Promise<void> {
+    this.closeAddItemForm();
+    await this.foodService.refreshMenu();
+  }
 
-      const response = await fetch(`${environment.apiUrl}menu/items`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-        },
-        body: JSON.stringify(newItem)
-      });
+  async onItemUpdated(): Promise<void> {
+    this.closeAddItemForm();
+    await this.foodService.refreshMenu();
+  }
 
-      if (!response.ok) {
-        throw new Error(`Failed to create item: ${response.statusText}`);
-      }
+  onEditItem(item: MenuItem): void {
+    this.editingItem.set(item);
+    this.showAddItemForm.set(true);
+  }
 
-      const result = await response.json();
-      console.log('✅ Item created successfully:', result);
+  onCategorySelected(categoryId: string | null): void {
+    this.foodService.updateSelectedCategory(categoryId || undefined);
+  }
 
-      // Close the form
-      this.closeAddItemForm();
-
-      // Refresh the menu to show the new item
-      await this.foodService.refreshMenu();
-
-      // Show success message (you can enhance this with a toast notification)
-      alert(`Successfully added "${newItem.name}" to ${this.selectedCategoryName()}!`);
-
-    } catch (error) {
-      console.error('❌ Failed to create item:', error);
-      this.isAddingItem.set(false);
-
-      // Show error message (you can enhance this with a toast notification)
-      alert(`Failed to add item: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
+  onFilterChanged(filters: any): void {
+    // Handle filter changes - for now just log them since the specific updateFilters method doesn't exist
+    console.log('Filters changed:', filters);
   }
 }

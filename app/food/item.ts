@@ -174,3 +174,79 @@ export const createMenuItem = api(
     }
   }
 );
+
+// Update an existing menu item
+export const updateMenuItem = api(
+  {
+    method: "PUT",
+    path: "/api/menu/items/:itemId",
+    auth: true,
+    expose: true
+  },
+  async ({ itemId, ...params }: { itemId: string } & CreateMenuItemRequest): Promise<{ id: string; message: string }> => {
+    const authData = getAuthData();
+    if (!authData) {
+      throw new Error("Authentication required");
+    }
+
+    log.info("Updating menu item", {
+      userId: authData.userID,
+      email: authData.email,
+      itemId,
+      itemName: params.name
+    });
+
+    try {
+      const restaurantId = "default"; // You can make this dynamic
+
+      // Check if item exists
+      const existingItem = await foodRepo.getMenuItem(itemId, restaurantId);
+      if (!existingItem) {
+        throw new Error(`Menu item with ID ${itemId} not found`);
+      }
+
+      const itemData = {
+        restaurantId,
+        categoryId: params.categoryId,
+        subcategoryId: params.subcategoryId,
+        name: params.name,
+        slug: params.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+        description: params.description,
+        shortDescription: params.description.substring(0, 100),
+        basePrice: params.basePrice,
+        packingCharges: params.packingCharges || 0,
+        isVeg: params.isVeg,
+        spiceLevel: params.spiceLevel,
+        servingSize: params.servingSize || 1,
+        images: params.images,
+        isActive: true,
+        isInStock: true,
+        isRecommended: params.isRecommended || false,
+        isPopular: false,
+        tags: params.tags || [],
+        allergens: params.allergens || [],
+        variantGroups: params.variantGroups || [],
+        addonGroupIds: params.addonGroupIds || [],
+        orderCount: existingItem.item.orderCount || 0,
+        rating: existingItem.item.rating || 0,
+        reviewCount: existingItem.item.reviewCount || 0,
+        displayOrder: existingItem.item.displayOrder || 999,
+        updatedAt: new Date()
+      };
+
+      await foodRepo.updateMenuItem(itemId, itemData);
+
+      return {
+        id: itemId,
+        message: `Menu item '${params.name}' updated successfully`
+      };
+    } catch (error) {
+      log.error(error, "Failed to update menu item", {
+        userId: authData.userID,
+        itemId,
+        itemName: params.name
+      });
+      throw error;
+    }
+  }
+);
