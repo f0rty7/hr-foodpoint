@@ -42,25 +42,30 @@ import { MenuItem } from '../../services/food-listing.service';
         <h3 class="food-name">{{ menuItem().name }}</h3>
         <p class="food-description">{{ menuItem().description }}</p>
 
-        <div class="price-section">
-          <div class="price">₹{{ menuItem().price || menuItem().basePrice }}</div>
-          @if ((menuItem().packing_charges || menuItem().packingCharges || 0) > 0) {
-            <div class="packing-charges">+ ₹{{ menuItem().packing_charges || menuItem().packingCharges }} packing</div>
-          }
-        </div>
+        <div class="bottom-section">
+          <div class="price-section">
+            <div class="price">₹{{ menuItem().price || menuItem().basePrice }}</div>
+            @if ((menuItem().packing_charges || menuItem().packingCharges || 0) > 0) {
+              <div class="packing-charges">+ ₹{{ menuItem().packing_charges || menuItem().packingCharges }} packing</div>
+            }
+          </div>
 
-        <div class="card-actions">
-          <button
-            class="order-btn"
-            [disabled]="menuItem().in_stock === 0 || menuItem().isInStock === false"
-            (click)="onOrderClick()">
-            {{ (menuItem().in_stock === 0 || menuItem().isInStock === false) ? 'Out of Stock' : 'Order Me' }}
-          </button>
-
-          <div class="quantity-controls" [class.hidden]="!showQuantityControls()">
-            <button class="qty-btn" (click)="decreaseQuantity()">-</button>
-            <span class="quantity">{{ quantity() }}</span>
-            <button class="qty-btn" (click)="increaseQuantity()">+</button>
+          <div class="card-actions">
+            @if (!showQuantityControls()) {
+              <button
+                class="order-btn"
+                [disabled]="menuItem().in_stock === 0 || menuItem().isInStock === false"
+                (click)="onOrderClick()"
+                [title]="(menuItem().in_stock === 0 || menuItem().isInStock === false) ? 'Out of Stock' : 'Add to cart'">
+                {{ (menuItem().in_stock === 0 || menuItem().isInStock === false) ? '×' : '+' }}
+              </button>
+            } @else {
+              <div class="quantity-controls">
+                <button class="qty-btn" (click)="decreaseQuantity()">-</button>
+                <span class="quantity">{{ quantity() }}</span>
+                <button class="qty-btn" (click)="increaseQuantity()">+</button>
+              </div>
+            }
           </div>
         </div>
       </div>
