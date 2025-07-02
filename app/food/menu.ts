@@ -13,10 +13,18 @@ export {
 export {
   getMenuItem,
   searchMenu,
-  createMenuItem
+  createMenuItem,
+  updateMenuItem
 } from "./item";
+
+// Migration-related exports
+export {
+  migrateStaticDataToMongoDB,
+  clearMongoDBData
+} from "./migration";
 
 // Note: The menu functionality has been refactored into separate files:
 // - category.ts: Contains all category-related operations
 // - item.ts: Contains all item-related operations
+// - migration.ts: Contains migration utilities for transitioning to MongoDB
 // This file maintains backward compatibility by re-exporting all functions

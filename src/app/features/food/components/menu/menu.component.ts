@@ -2,12 +2,23 @@ import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { FoodListingService } from '../../services/food-listing.service';
+import { FoodListingService, MenuItem } from '../../services/food-listing.service';
 import { FoodService } from '../../services/food.service';
 import { FoodCardComponent } from '../food-card/food-card.component';
 import { FilterSidebarComponent } from '../filter-sidebar/filter-sidebar.component';
 import { OrderDetailsComponent } from '../order-details/order-details.component';
+import { AddItemFormComponent } from '../add-item-form/add-item-form.component';
 import { AuthService } from '../../../auth/services/auth.service';
+import { environment } from '../../../../../environments/environment';
+
+interface Category {
+  id: string;
+  name: string;
+  subcategories?: Array<{
+    id: string;
+    name: string;
+  }>;
+}
 
 @Component({
   selector: 'app-food-menu',
@@ -18,7 +29,8 @@ import { AuthService } from '../../../auth/services/auth.service';
     RouterModule,
     FoodCardComponent,
     FilterSidebarComponent,
-    OrderDetailsComponent
+    OrderDetailsComponent,
+    AddItemFormComponent
   ],
   template: `
     <div class="food-listing-container">
@@ -103,10 +115,10 @@ import { AuthService } from '../../../auth/services/auth.service';
 
         <!-- Top Categories -->
         <section class="top-categories">
-          <h2 class="section-title">Categories</h2>
-          <div class="categories-text">
+          <!-- <h2 class="section-title">Categories</h2> -->
+          <!-- <div class="categories-text"> -->
             <!-- Results Info -->
-            @if (!foodService.isLoading && !foodService.hasError) {
+            <!-- @if (!foodService.isLoading && !foodService.hasError) {
               <div class="results-info">
                 <span class="results-count">
                   {{ foodService.filteredItems().length }} of {{ foodService.menuStats().totalItems }} dishes
@@ -117,11 +129,11 @@ import { AuthService } from '../../../auth/services/auth.service';
                   </span>
                 }
               </div>
-            }
-          </div>
+            } -->
+          <!-- </div> -->
 
           <div class="categories-pills">
-            @if(isAdmin()) {
+            @if(authService.isAdmin()) {
                 <button class="category-pill-add">
                   Add Category
                 </button>
@@ -169,8 +181,31 @@ import { AuthService } from '../../../auth/services/auth.service';
         <!-- Food Grid -->
         @if (!foodService.isLoading && !foodService.hasError) {
           <div class="food-grid">
-            @for (item of foodService.filteredItems(); track item.item.id) {
-              <app-food-card [menuItem]="item.item" />
+            @if(authService.isAdmin() && foodService.selectedCategory()) {
+              <div class="add-item-card food-card" (click)="openAddItemForm()" [class.disabled]="isAddingItem()">
+                <div class="card-image add-item-image">
+                  <div class="add-icon">
+                    @if (isAddingItem()) {
+                      <div class="loading-spinner"></div>
+                    } @else {
+                      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                      </svg>
+                    }
+                  </div>
+                </div>
+                <div class="card-content">
+                  <h3 class="food-name">{{ isAddingItem() ? 'Adding Item...' : 'Add New Item' }}</h3>
+                  <p class="food-description">Click to add a new menu item to {{ selectedCategoryName() }}</p>
+                  <div class="add-item-footer">
+                    <span class="add-text">+ Add Item</span>
+                  </div>
+                </div>
+              </div>
+            }
+            @for (item of foodService.filteredItems(); track item.id || item._id) {
+              <app-food-card [menuItem]="item" [isAdmin]="authService.isAdmin()" (editItem)="onEditItem($event)" />
             } @empty {
               <div class="empty-state">
                 <div class="empty-icon">🍽️</div>
@@ -191,6 +226,19 @@ import { AuthService } from '../../../auth/services/auth.service';
         <app-order-details [items]="cartService.cart()" />
       </aside>
     </div>
+
+    <!-- Add Item Form Modal -->
+    @if (showAddItemForm()) {
+      <app-add-item-form
+        [isVisible]="true"
+        [categories]="foodService.categories()"
+        [selectedCategoryId]="foodService.selectedCategory() || null"
+        [editItem]="editingItem()"
+        (itemCreated)="onItemCreated()"
+        (itemUpdated)="onItemUpdated()"
+        (cancelled)="closeAddItemForm()">
+      </app-add-item-form>
+    }
   `,
   styleUrl: './menu.component.scss'
 })
@@ -202,13 +250,24 @@ export class MenuListingComponent {
 
   constructor() {
     console.log(this.authService.currentUser())
-    this.isAdmin.set(this.authService.isAdmin())
+    // this.isAdmin.set(this.authService.isAdmin())
   }
 
   // Local component signals
   showSortDropdown = signal(false);
   showFilterDropdown = signal(false);
-  isAdmin = signal(false)
+  showAddItemForm = signal(false);
+  isAddingItem = signal(false);
+  editingItem = signal<MenuItem | null>(null);
+
+  // Computed values for selected category
+  selectedCategoryId = computed(() => this.foodService.selectedCategory() || '');
+  selectedCategoryName = computed(() => {
+    const categoryId = this.foodService.selectedCategory();
+    if (!categoryId) return '';
+    const category = this.foodService.categories().find(c => c.id === categoryId);
+    return category?.name || '';
+  });
 
   onSearchInput(event: Event): void {
     const target = event.target as HTMLInputElement;
@@ -252,5 +311,41 @@ export class MenuListingComponent {
 
   logCategory(category: any): void {
     console.log("🚀 ~ logCategory ~ category:", category)
+  }
+
+  // Add Item functionality
+  openAddItemForm(): void {
+    this.editingItem.set(null);
+    this.showAddItemForm.set(true);
+  }
+
+  closeAddItemForm(): void {
+    this.showAddItemForm.set(false);
+    this.editingItem.set(null);
+    this.isAddingItem.set(false);
+  }
+
+  async onItemCreated(): Promise<void> {
+    this.closeAddItemForm();
+    await this.foodService.refreshMenu();
+  }
+
+  async onItemUpdated(): Promise<void> {
+    this.closeAddItemForm();
+    await this.foodService.refreshMenu();
+  }
+
+  onEditItem(item: MenuItem): void {
+    this.editingItem.set(item);
+    this.showAddItemForm.set(true);
+  }
+
+  onCategorySelected(categoryId: string | null): void {
+    this.foodService.updateSelectedCategory(categoryId || undefined);
+  }
+
+  onFilterChanged(filters: any): void {
+    // Handle filter changes - for now just log them since the specific updateFilters method doesn't exist
+    console.log('Filters changed:', filters);
   }
 }
