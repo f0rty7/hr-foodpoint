@@ -127,6 +127,7 @@ gsap.registerPlugin(ScrollTrigger, ScrollSmoother, SplitText);
       width: 100%;
       height: 100%;
       object-fit: cover;
+      max-height: calc(100vh - 6vh);
     }
 
     .featured-section {
