@@ -20,7 +20,7 @@ export interface OrderItem {
 @Injectable({
   providedIn: 'root'
 })
-export class FoodService {
+export class FoodCartService {
   private _items = signal<FoodItem[]>([
     {
       id: '1',
@@ -90,34 +90,44 @@ export class FoodService {
   readonly discount = computed(() => this.subtotal() * 0.1); // 10% discount
   readonly total = computed(() => this.subtotal() - this.discount());
 
-  updateQuantity(id: string, quantity: number) {
-    const items = this._items();
-    const itemIndex = items.findIndex(item => item.id === id);
-
-    if (itemIndex === -1) return;
-
-    const updatedItems = [...items];
-    updatedItems[itemIndex] = {
-      ...updatedItems[itemIndex],
-      quantity
-    };
-
-    this._items.set(updatedItems);
-
-    // Update cart
-    if (quantity > 0) {
+  updateQuantity(id: string, quantity: number, itemData?: Partial<FoodItem>) {
+    // If itemData is provided, use it for new items
+    if (itemData && quantity > 0) {
       const cartItems = this._cart();
       const cartItemIndex = cartItems.findIndex(item => item.id === id);
 
+      const cartItem: FoodItem = {
+        id: id,
+        name: itemData.name || '',
+        image: itemData.image || '',
+        price: itemData.price || 0,
+        originalPrice: itemData.originalPrice || itemData.price || 0,
+        quantity: quantity
+      };
+
       if (cartItemIndex === -1) {
-        this._cart.set([...cartItems, updatedItems[itemIndex]]);
+        this._cart.set([...cartItems, cartItem]);
       } else {
         const updatedCart = [...cartItems];
-        updatedCart[cartItemIndex] = updatedItems[itemIndex];
+        updatedCart[cartItemIndex] = cartItem;
         this._cart.set(updatedCart);
       }
-    } else {
+    } else if (quantity === 0) {
+      // Remove from cart
       this._cart.set(this._cart().filter(item => item.id !== id));
+    }
+
+    // Legacy support for existing items
+    const items = this._items();
+    const itemIndex = items.findIndex(item => item.id === id);
+
+    if (itemIndex !== -1) {
+      const updatedItems = [...items];
+      updatedItems[itemIndex] = {
+        ...updatedItems[itemIndex],
+        quantity
+      };
+      this._items.set(updatedItems);
     }
   }
 

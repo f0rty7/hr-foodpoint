@@ -1,4 +1,4 @@
-import { Component, Input, computed, signal } from '@angular/core';
+import { Component, input, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FoodItem } from '../../services/food.service';
 
@@ -29,7 +29,7 @@ type DeliveryOption = 'Delivery' | 'Dine In' | 'Take Away';
       </div>
 
       <div class="order-items">
-        @for (item of items; track item.id) {
+        @for (item of items(); track item.id) {
           <div class="order-item">
             <img [src]="item.image" [alt]="item.name" class="item-image">
             <div class="item-info">
@@ -44,7 +44,7 @@ type DeliveryOption = 'Delivery' | 'Dine In' | 'Take Away';
       <div class="order-summary">
         <div class="summary-row">
           <span>Items</span>
-          <span>₹ {{ subtotal().toFixed(2) }}</span>
+          <span>{{ itemCount() }}</span>
         </div>
         <div class="summary-row">
           <span>Discounts</span>
@@ -252,23 +252,27 @@ type DeliveryOption = 'Delivery' | 'Dine In' | 'Take Away';
   `]
 })
 export class OrderDetailsComponent {
-  @Input({ required: true }) items: FoodItem[] = [];
+  items = input.required<FoodItem[]>();
 
   deliveryOptions: DeliveryOption[] = ['Dine In', 'Take Away'];
   selectedDeliveryOption = signal<DeliveryOption>('Delivery');
 
   subtotal = computed(() =>
-    this.items.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+    this.items().reduce((sum: number, item: FoodItem) => sum + (item.price * item.quantity), 0)
   );
 
   discount = computed(() =>
-    this.items.reduce((sum, item) => {
+    this.items().reduce((sum: number, item: FoodItem) => {
       if (!item.originalPrice) return sum;
       return sum + ((item.originalPrice - item.price) * item.quantity);
     }, 0)
   );
 
   total = computed(() => this.subtotal() - this.discount());
+
+  itemCount = computed(() =>
+    this.items().reduce((count: number, item: FoodItem) => count + item.quantity, 0)
+  );
 
   selectDeliveryOption(option: DeliveryOption) {
     this.selectedDeliveryOption.set(option);

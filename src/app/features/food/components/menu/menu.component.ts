@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { FoodListingService, MenuItem } from '../../services/food-listing.service';
-import { FoodService } from '../../services/food.service';
+import { FoodCartService } from '../../services/food.service';
 import { FoodCardComponent } from '../food-card/food-card.component';
 import { FilterSidebarComponent } from '../filter-sidebar/filter-sidebar.component';
 import { OrderDetailsComponent } from '../order-details/order-details.component';
@@ -136,7 +136,7 @@ interface Category {
 
           <div class="categories-pills">
             @if(authService.isAdmin()) {
-                <button class="category-pill-add">
+                <button class="category-pill-add" (click)="addCategory()">
                   Add Category
                 </button>
               }
@@ -247,7 +247,7 @@ interface Category {
 
 export class MenuListingComponent {
   readonly foodService = inject(FoodListingService);
-  readonly cartService = inject(FoodService);
+  readonly cartService = inject(FoodCartService);
   readonly authService = inject(AuthService);
 
   constructor() {
@@ -349,5 +349,37 @@ export class MenuListingComponent {
   onFilterChanged(filters: any): void {
     // Handle filter changes - for now just log them since the specific updateFilters method doesn't exist
     console.log('Filters changed:', filters);
+  }
+
+  async addCategory(): Promise<void> {
+    const categoryName = prompt('Enter category name:');
+    if (!categoryName?.trim()) return;
+
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`${environment.apiUrl}menu/categories`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          name: categoryName.trim(),
+          description: `${categoryName} category`,
+          displayOrder: this.foodService.categories().length + 1
+        })
+      });
+
+      if (response.ok) {
+        // Refresh categories to show the new one
+        this.foodService.refreshMenu();
+        alert('Category added successfully!');
+      } else {
+        throw new Error('Failed to add category');
+      }
+    } catch (error) {
+      console.error('Error adding category:', error);
+      alert('Failed to add category. Please try again.');
+    }
   }
 }

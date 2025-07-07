@@ -1,6 +1,7 @@
-import { Component, input, signal, output } from '@angular/core';
+import { Component, input, signal, output, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MenuItem } from '../../services/food-listing.service';
+import { FoodCartService } from '../../services/food.service';
 
 @Component({
   selector: 'app-food-card',
@@ -81,16 +82,26 @@ export class FoodCardComponent {
   // Output events
   editItem = output<MenuItem>();
 
-  // Local component state
-  quantity = signal(0);
-  showQuantityControls = signal(false);
+  // Injected services
+  private foodService = inject(FoodCartService);
+
+  // Get item ID for cart operations
+  private itemId = computed(() => this.menuItem().id || this.menuItem()._id || '');
+
+  // Get quantity from cart service
+  quantity = computed(() => {
+    const cartItems = this.foodService.cart();
+    const cartItem = cartItems.find(item => item.id === this.itemId());
+    return cartItem?.quantity || 0;
+  });
+
+  showQuantityControls = computed(() => this.quantity() > 0);
 
   onOrderClick(): void {
     if (this.menuItem().in_stock === 0 || this.menuItem().isInStock === false) return;
 
     if (this.quantity() === 0) {
       this.increaseQuantity();
-      this.showQuantityControls.set(true);
     }
   }
 
@@ -99,18 +110,28 @@ export class FoodCardComponent {
   }
 
   increaseQuantity(): void {
-    this.quantity.update(qty => qty + 1);
-    this.showQuantityControls.set(true);
+    const currentQty = this.quantity();
+    this.updateCartQuantity(currentQty + 1);
   }
 
   decreaseQuantity(): void {
-    this.quantity.update(qty => {
-      const newQty = Math.max(0, qty - 1);
-      if (newQty === 0) {
-        this.showQuantityControls.set(false);
-      }
-      return newQty;
-    });
+    const currentQty = this.quantity();
+    const newQty = Math.max(0, currentQty - 1);
+    this.updateCartQuantity(newQty);
+  }
+
+  private updateCartQuantity(newQuantity: number): void {
+    const item = this.menuItem();
+    const cartItem = {
+      id: this.itemId(),
+      name: item.name,
+      image: item.image_url || item.images?.primary || 'assets/images/food-plate.webp',
+      price: item.price || item.basePrice,
+      originalPrice: item.price || item.basePrice,
+      quantity: newQuantity
+    };
+
+    this.foodService.updateQuantity(cartItem.id, newQuantity, cartItem);
   }
 
   onImageError(event: Event): void {
