@@ -16,9 +16,9 @@
 .modal-content {
   background: white;
   border-radius: 16px;
-  width: 90%;
-  max-width: 700px;
-  max-height: 90vh;
+  width: 100%;
+  max-width: 40vw;
+  max-height: 75vh;
   overflow: hidden;
   box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
   animation: slideUp 0.3s ease-out;
@@ -30,7 +30,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 24px 32px;
+  padding: 1rem 2rem;
   border-bottom: 1px solid #e2e8f0;
   background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
 
@@ -69,7 +69,7 @@
 }
 
 .modal-body {
-  padding: 32px 32px 0;
+  padding: 1rem 1rem 0;
   flex: 1;
   overflow-y: auto;
   background: #fafbfc;
@@ -97,8 +97,8 @@
 .form-section {
   background: white;
   border-radius: 12px;
-  padding: 24px;
-  margin-bottom: 24px;
+  padding: 1rem;
+  margin-bottom: 1rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   border: 1px solid #e9ecef;
 
@@ -279,7 +279,7 @@
   display: flex;
   justify-content: flex-end;
   gap: 16px;
-  padding: 24px 32px;
+  padding: 1rem 2rem;
   background: white;
   border-top: 1px solid #e9ecef;
   position: sticky;

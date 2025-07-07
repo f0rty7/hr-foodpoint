@@ -225,23 +225,25 @@ interface Category {
             </div>
           </div>
 
-          <!-- Form Actions -->
-          <div class="form-actions">
-            <button type="button" class="btn btn-secondary" (click)="onCancel()">
-              Cancel
-            </button>
-            <button
-              type="submit"
-              class="btn btn-primary"
-              [disabled]="formInvalid() || isSubmitting()">
-              @if (isSubmitting()) {
-                <span>{{ submitButtonLoadingText() }}</span>
-              } @else {
-                <span>{{ submitButtonText() }}</span>
-              }
-            </button>
-          </div>
         </form>
+
+        <!-- Form Actions -->
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" (click)="onCancel()">
+            Cancel
+          </button>
+          <button
+            type="submit"
+            class="btn btn-primary"
+            [disabled]="formInvalid() || isSubmitting()"
+            (click)="onSubmit()">
+            @if (isSubmitting()) {
+              <span>{{ submitButtonLoadingText() }}</span>
+            } @else {
+              <span>{{ submitButtonText() }}</span>
+            }
+          </button>
+        </div>
       </div>
     </div>
   `,
@@ -261,13 +263,14 @@ export class AddItemFormComponent {
 
   // Internal signals
   isSubmitting = signal(false);
+  formValid = signal(false);
 
   // Computed signals
   isEditMode = computed(() => this.editItem() !== null);
   modalTitle = computed(() => this.isEditMode() ? 'Edit Menu Item' : 'Add Menu Item');
   submitButtonText = computed(() => this.isEditMode() ? 'Update Item' : 'Create Item');
   submitButtonLoadingText = computed(() => this.isEditMode() ? 'Updating...' : 'Creating...');
-  formInvalid = computed(() => !this.itemForm.valid);
+  formInvalid = computed(() => !this.formValid());
 
   // Form field validation computed signals
   nameFieldInvalid = computed(() => {
@@ -308,6 +311,14 @@ export class AddItemFormComponent {
   constructor(private fb: FormBuilder) {
     this.itemForm = this.createForm();
 
+    // Subscribe to form validity changes
+    this.itemForm.statusChanges.subscribe(() => {
+      this.formValid.set(this.itemForm.valid);
+    });
+
+    // Set initial form validity
+    this.formValid.set(this.itemForm.valid);
+
     // Effect to handle category pre-selection
     effect(() => {
       const categoryId = this.selectedCategoryId();
@@ -330,7 +341,7 @@ export class AddItemFormComponent {
       name: ['', [Validators.required, Validators.minLength(2)]],
       description: ['', [Validators.required, Validators.minLength(10)]],
       categoryId: ['', Validators.required],
-      basePrice: [0, [Validators.required, Validators.min(0.01)]],
+      basePrice: [0, [Validators.required, Validators.min(0)]],
       packingCharges: [0, [Validators.min(0)]],
       isVeg: [true],
       isRecommended: [false],
