@@ -50,7 +50,7 @@ interface Category {
               type="text"
               class="search-input"
               placeholder="Search dishes..."
-              [value]="foodService.searchQuery()"
+              [value]="foodService.filters().query"
               (input)="onSearchInput($event)"
             />
           </div>
@@ -71,19 +71,19 @@ interface Category {
             <div class="dropdown sort-dropdown">
               <button
                 class="dropdown-item"
-                [class.active]="foodService.sortBy() === 'popularity'"
+                [class.active]="foodService.filters().sortBy === 'popularity'"
                 (click)="updateSort('popularity')">
                 Popularity
               </button>
               <button
                 class="dropdown-item"
-                [class.active]="foodService.sortBy() === 'price'"
+                [class.active]="foodService.filters().sortBy === 'price'"
                 (click)="updateSort('price')">
                 Price
               </button>
               <button
                 class="dropdown-item"
-                [class.active]="foodService.sortBy() === 'name'"
+                [class.active]="foodService.filters().sortBy === 'name'"
                 (click)="updateSort('name')">
                 Name
               </button>
@@ -96,7 +96,7 @@ interface Category {
               <label class="dropdown-item">
                 <input
                   type="checkbox"
-                  [checked]="foodService.vegOnly()"
+                  [checked]="foodService.filters().vegOnly"
                   (change)="onVegOnlyChange($event)"
                 />
                 <span class="checkmark"></span>
@@ -105,7 +105,7 @@ interface Category {
               <label class="dropdown-item">
                 <input
                   type="checkbox"
-                  [checked]="foodService.inStockOnly()"
+                  [checked]="foodService.filters().inStockOnly"
                   (change)="onInStockOnlyChange($event)"
                 />
                 <span class="checkmark"></span>
@@ -143,14 +143,14 @@ interface Category {
 
             <button
               class="category-pill"
-              [class.active]="!foodService.selectedCategory()"
+              [class.active]="!foodService.filters().category"
               (click)="foodService.updateSelectedCategory(undefined)">
               All
             </button>
             @for (category of foodService.categories(); track category.id) {
               <button
                 class="category-pill {{ category.id }}"
-                [class.active]="foodService.selectedCategory() === category.id"
+                [class.active]="foodService.filters().category === category.id"
                 (click)="foodService.updateSelectedCategory(category.id); logCategory(category)">
                 {{ category.name }}
               </button>
@@ -161,7 +161,7 @@ interface Category {
       </div>
 
         <!-- Loading State -->
-        @if (foodService.isLoading) {
+        @if (foodService.isLoading()) {
           <div class="loading-state">
             <div class="loading-spinner"></div>
             <p>Loading delicious meals...</p>
@@ -169,7 +169,7 @@ interface Category {
         }
 
         <!-- Error State -->
-        @if (foodService.hasError) {
+        @if (foodService.hasError()) {
           <div class="error-state">
             <div class="error-icon">⚠️</div>
             <h3>Oops! Something went wrong</h3>
@@ -181,9 +181,9 @@ interface Category {
         }
 
         <!-- Food Grid -->
-        @if (!foodService.isLoading && !foodService.hasError) {
+        @if (!foodService.isLoading() && !foodService.hasError()) {
           <div class="food-grid">
-            @if(authService.isAdmin() && foodService.selectedCategory()) {
+            @if(authService.isAdmin() && foodService.filters().category) {
               <div class="add-item-card food-card" (click)="openAddItemForm()" [class.disabled]="isAddingItem()">
                 <div class="card-image add-item-image">
                   <div class="add-icon">
@@ -234,7 +234,7 @@ interface Category {
       <app-add-item-form
         [isVisible]="true"
         [categories]="foodService.categories()"
-        [selectedCategoryId]="foodService.selectedCategory() || null"
+        [selectedCategoryId]="foodService.filters().category || null"
         [editItem]="editingItem()"
         (itemCreated)="onItemCreated()"
         (itemUpdated)="onItemUpdated()"
@@ -263,9 +263,9 @@ export class MenuListingComponent {
   editingItem = signal<MenuItem | null>(null);
 
   // Computed values for selected category
-  selectedCategoryId = computed(() => this.foodService.selectedCategory() || '');
+  selectedCategoryId = computed(() => this.foodService.filters().category || '');
   selectedCategoryName = computed(() => {
-    const categoryId = this.foodService.selectedCategory();
+    const categoryId = this.foodService.filters().category;
     if (!categoryId) return '';
     const category = this.foodService.categories().find(c => c.id === categoryId);
     return category?.name || '';
@@ -287,8 +287,8 @@ export class MenuListingComponent {
   }
 
   updateSort(sortBy: 'name' | 'price' | 'popularity'): void {
-    const currentOrder = this.foodService.sortOrder();
-    const newOrder = this.foodService.sortBy() === sortBy && currentOrder === 'asc' ? 'desc' : 'asc';
+    const currentOrder = this.foodService.filters().sortOrder;
+    const newOrder = this.foodService.filters().sortBy === sortBy && currentOrder === 'asc' ? 'desc' : 'asc';
     this.foodService.updateSorting(sortBy, newOrder);
     this.showSortDropdown.set(false);
   }

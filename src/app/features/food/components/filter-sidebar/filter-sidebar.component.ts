@@ -42,7 +42,7 @@ import { FoodListingService } from '../../services/food-listing.service';
                  <label class="filter-option">
            <input
              type="checkbox"
-             [checked]="foodService.vegOnly()"
+             [checked]="foodService.filters().vegOnly"
              (change)="onVegOnlyChange($event)"
            />
            <span class="checkmark"></span>
@@ -51,7 +51,7 @@ import { FoodListingService } from '../../services/food-listing.service';
          <label class="filter-option">
            <input
              type="checkbox"
-             [checked]="foodService.inStockOnly()"
+             [checked]="foodService.filters().inStockOnly"
              (change)="onInStockOnlyChange($event)"
            />
            <span class="checkmark"></span>
@@ -67,7 +67,7 @@ import { FoodListingService } from '../../services/food-listing.service';
             <input
               type="radio"
               name="category"
-              [checked]="!foodService.selectedCategory()"
+              [checked]="!foodService.filters().category"
               (change)="foodService.updateSelectedCategory(undefined)"
             />
             <span class="radio-mark"></span>
@@ -78,7 +78,7 @@ import { FoodListingService } from '../../services/food-listing.service';
               <input
                 type="radio"
                 name="category"
-                [checked]="foodService.selectedCategory() === category.id"
+                [checked]="foodService.filters().category === category.id"
                 (change)="foodService.updateSelectedCategory(category.id)"
               />
               <span class="radio-mark"></span>
